@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +12,17 @@ import {
   SheetClose,
 } from "@/components/ui/sheet";
 import { navLinks } from "@/lib/constants";
+import { useAuthModal } from "@/components/auth/auth-modal-context";
+import type { User } from "@supabase/supabase-js";
 
-export function MobileNav() {
+export function MobileNav({ user }: { user: User | null }) {
   const [open, setOpen] = useState(false);
+  const { open: openAuthModal } = useAuthModal();
+
+  function handleAuthClick(mode: "login" | "signup") {
+    setOpen(false);
+    openAuthModal(mode);
+  }
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -29,7 +38,7 @@ export function MobileNav() {
       <SheetContent side="right" className="w-72">
         <SheetHeader>
           <SheetTitle className="text-left text-lg font-bold tracking-tight text-primary">
-            Clarity
+            ClarityCRM
           </SheetTitle>
         </SheetHeader>
         <nav className="flex flex-col gap-1 px-4">
@@ -45,12 +54,29 @@ export function MobileNav() {
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-2 p-4">
-          <Button variant="ghost" className="w-full justify-center">
-            Log in
-          </Button>
-          <Button className="w-full rounded-full bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground">
-            Get Started
-          </Button>
+          {user ? (
+            <SheetClose asChild>
+              <Button asChild className="w-full justify-center">
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+            </SheetClose>
+          ) : (
+            <>
+              <Button
+                variant="ghost"
+                className="w-full justify-center"
+                onClick={() => handleAuthClick("login")}
+              >
+                Log in
+              </Button>
+              <Button
+                className="w-full rounded-full bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground"
+                onClick={() => handleAuthClick("signup")}
+              >
+                Get Started
+              </Button>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

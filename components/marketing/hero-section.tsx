@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Play } from "lucide-react";
 import { SectionDivider } from "./section-divider";
+import { AuthModalTrigger } from "@/components/auth/auth-modal-trigger";
 
 export function HeroSection() {
   return (
@@ -24,19 +25,20 @@ export function HeroSection() {
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
-            Stop drowning in spreadsheets. Clarity gives your team a single,
+            Stop drowning in spreadsheets. ClarityCRM gives your team a single,
             beautiful workspace to manage contacts, track deals, and close
             faster.
           </p>
 
           <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
+            <AuthModalTrigger
+              mode="signup"
               size="lg"
               className="rounded-full bg-gradient-to-r from-gradient-from to-gradient-to px-8 text-primary-foreground hover:opacity-90"
             >
               Start Free Trial
               <ArrowRight className="ml-1 size-4" />
-            </Button>
+            </AuthModalTrigger>
             <Button
               variant="outline"
               size="lg"

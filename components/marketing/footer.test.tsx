@@ -5,7 +5,7 @@ import { Footer } from "./footer";
 describe("Footer", () => {
   it("renders the logo", () => {
     render(<Footer />);
-    expect(screen.getByText("Clarity")).toBeInTheDocument();
+    expect(screen.getByText("ClarityCRM")).toBeInTheDocument();
   });
 
   it("renders all footer sections", () => {
@@ -18,7 +18,7 @@ describe("Footer", () => {
 
   it("renders copyright text", () => {
     render(<Footer />);
-    expect(screen.getByText(/Clarity CRM\. All rights reserved/)).toBeInTheDocument();
+    expect(screen.getByText(/ClarityCRM\. All rights reserved/)).toBeInTheDocument();
   });
 
   it("renders social media links", () => {

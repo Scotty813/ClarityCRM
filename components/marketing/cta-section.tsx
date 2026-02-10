@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
+import { AuthModalTrigger } from "@/components/auth/auth-modal-trigger";
 
 export function CtaSection() {
   return (
@@ -13,14 +13,15 @@ export function CtaSection() {
           your free 14-day trial — no credit card required.
         </p>
         <div className="mt-10">
-          <Button
+          <AuthModalTrigger
+            mode="signup"
             size="lg"
             variant="secondary"
             className="rounded-full px-8 text-primary"
           >
             Get Started for Free
             <ArrowRight className="ml-1 size-4" />
-          </Button>
+          </AuthModalTrigger>
         </div>
       </div>
     </section>

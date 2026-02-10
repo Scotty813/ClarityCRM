@@ -10,7 +10,7 @@ const showcaseItems = [
   {
     title: "Automate the busywork, focus on selling",
     description:
-      "Set up rules in seconds: auto-assign leads, trigger follow-up emails, and get notified when deals go cold. Clarity handles the repetitive tasks so your team can spend time where it matters.",
+      "Set up rules in seconds: auto-assign leads, trigger follow-up emails, and get notified when deals go cold. ClarityCRM handles the repetitive tasks so your team can spend time where it matters.",
     imageAlt: "Automation rules builder interface",
   },
 ];

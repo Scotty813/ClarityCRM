@@ -47,13 +47,13 @@ export const features: Feature[] = [
   {
     title: "Email Integration",
     description:
-      "Sync your inbox directly with Clarity. Log emails, schedule follow-ups, and use templates — all without leaving the CRM.",
+      "Sync your inbox directly with ClarityCRM. Log emails, schedule follow-ups, and use templates — all without leaving the CRM.",
     icon: Mail,
   },
   {
     title: "Task Automation",
     description:
-      "Automate repetitive workflows with simple rules. From lead assignment to follow-up reminders, let Clarity handle the busywork.",
+      "Automate repetitive workflows with simple rules. From lead assignment to follow-up reminders, let ClarityCRM handle the busywork.",
     icon: Zap,
   },
   {
@@ -76,7 +76,7 @@ export type Testimonial = {
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "Clarity replaced three tools for us overnight. Our sales team onboarded in under an hour and closed 20% more deals in the first quarter.",
+      "ClarityCRM replaced three tools for us overnight. Our sales team onboarded in under an hour and closed 20% more deals in the first quarter.",
     name: "Sarah Chen",
     role: "VP of Sales",
     company: "Luminary Tech",
@@ -94,7 +94,7 @@ export const testimonials: Testimonial[] = [
   },
   {
     quote:
-      "We evaluated a dozen CRMs and Clarity was the only one that didn't require a consultant to set up. Clean, fast, and genuinely intuitive.",
+      "We evaluated a dozen CRMs and ClarityCRM was the only one that didn't require a consultant to set up. Clean, fast, and genuinely intuitive.",
     name: "Aisha Patel",
     role: "Head of Operations",
     company: "Vertex Solutions",

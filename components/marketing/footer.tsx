@@ -36,10 +36,10 @@ export function Footer() {
             href="/"
             className="text-lg font-bold tracking-tight text-primary-foreground"
           >
-            Clarity
+            ClarityCRM
           </a>
           <p className="text-sm text-primary-foreground/50">
-            &copy; {new Date().getFullYear()} Clarity CRM. All rights reserved.
+            &copy; {new Date().getFullYear()} ClarityCRM. All rights reserved.
           </p>
           {/* Social icons */}
           <div className="flex items-center gap-4">
