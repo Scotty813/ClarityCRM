@@ -1,7 +1,25 @@
-export default function AppLayout({
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { AppHeader } from "@/components/app/app-header";
+
+export default async function AppLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return <>{children}</>;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/");
+  }
+
+  return (
+    <>
+      <AppHeader email={user.email ?? ""} />
+      {children}
+    </>
+  );
 }

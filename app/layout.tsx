@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clarity CRM",
+  title: "ClarityCRM",
   description:
     "The modern CRM that brings clarity to your customer relationships. Manage contacts, track pipelines, and close deals faster.",
 };

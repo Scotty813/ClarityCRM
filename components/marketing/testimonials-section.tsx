@@ -11,7 +11,7 @@ export function TestimonialsSection() {
           </h2>
           <p className="mt-4 text-lg text-muted-foreground">
             Don&apos;t take our word for it — hear from the teams that switched
-            to Clarity and never looked back.
+            to ClarityCRM and never looked back.
           </p>
         </div>
 
