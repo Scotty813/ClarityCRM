@@ -29,7 +29,7 @@ export default async function AppLayout({
 
   // Fetch user's org memberships
   const { data: memberships } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .select("role, organization:organizations(id, name)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });

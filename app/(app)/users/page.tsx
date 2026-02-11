@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getActiveOrganization } from "@/lib/supabase/active-org";
 import { UsersTable } from "@/components/app/users/users-table";
-import type { OrgMember } from "@/lib/types/database";
+import type { OrgUser } from "@/lib/types/database";
 
 export default async function UsersPage() {
   const supabase = await createClient();
@@ -9,7 +9,7 @@ export default async function UsersPage() {
 
   const [{ data: members }, { data: org }] = await Promise.all([
     supabase
-      .from("organization_members")
+      .from("organization_users")
       .select("id, user_id, role, created_at, profiles(full_name, avatar_url, email)")
       .eq("organization_id", orgId)
       .order("created_at", { ascending: true }),
@@ -20,7 +20,7 @@ export default async function UsersPage() {
       .single(),
   ]);
 
-  const orgMembers: OrgMember[] = (members ?? []).map((m) => {
+  const orgUsers: OrgUser[] = (members ?? []).map((m) => {
     const profile = m.profiles as unknown as {
       full_name: string | null;
       avatar_url: string | null;
@@ -40,7 +40,7 @@ export default async function UsersPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <UsersTable members={orgMembers} orgName={org?.name ?? "Organization"} />
+      <UsersTable users={orgUsers} orgName={org?.name ?? "Organization"} />
     </div>
   );
 }

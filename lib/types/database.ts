@@ -6,10 +6,10 @@ export type MemberRole = Database["public"]["Enums"]["member_role"];
 export interface UserOrganization {
   id: string;
   name: string;
-  role: Database["public"]["Tables"]["organization_members"]["Row"]["role"];
+  role: Database["public"]["Tables"]["organization_users"]["Row"]["role"];
 }
 
-export interface OrgMember {
+export interface OrgUser {
   id: string;
   user_id: string;
   role: MemberRole;
