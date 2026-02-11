@@ -28,9 +28,10 @@ const ctaConfig = {
 interface WelcomeHeroProps {
   userName: string | null;
   selectedPath: Profile["selected_path"];
+  orgName?: string | null;
 }
 
-export function WelcomeHero({ userName, selectedPath }: WelcomeHeroProps) {
+export function WelcomeHero({ userName, selectedPath, orgName }: WelcomeHeroProps) {
   const path = selectedPath ?? "exploring";
   const cta = ctaConfig[path];
   const Icon = cta.icon;
@@ -41,7 +42,9 @@ export function WelcomeHero({ userName, selectedPath }: WelcomeHeroProps) {
         Welcome{userName ? `, ${userName}` : ""}
       </h1>
       <p className="mt-2 text-muted-foreground">
-        Your workspace is ready. Here&apos;s a good place to start.
+        {orgName
+          ? `${orgName} is ready. Here\u2019s a good place to start.`
+          : "Your workspace is ready. Here\u2019s a good place to start."}
       </p>
 
       <div className="mt-6 flex items-start gap-4 rounded-lg border border-border bg-background p-5">

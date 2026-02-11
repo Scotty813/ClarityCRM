@@ -1,18 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
+import { getActiveOrganization } from "@/lib/supabase/active-org";
 import { WelcomeHero } from "@/components/onboarding/welcome-hero";
 import { OnboardingChecklist } from "@/components/onboarding/onboarding-checklist";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { orgId, userId } = await getActiveOrganization();
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("full_name, selected_path")
-    .eq("id", user!.id)
-    .single();
+  const [{ data: profile }, { data: org }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("full_name, selected_path")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("organizations")
+      .select("name")
+      .eq("id", orgId)
+      .single(),
+  ]);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -20,6 +26,7 @@ export default async function DashboardPage() {
         <WelcomeHero
           userName={profile?.full_name ?? null}
           selectedPath={profile?.selected_path ?? null}
+          orgName={org?.name ?? null}
         />
         <OnboardingChecklist />
       </div>
