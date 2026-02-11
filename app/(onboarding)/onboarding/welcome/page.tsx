@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingProgress } from "@/components/onboarding/onboarding-progress";
 import { WelcomePathSelector } from "./welcome-path-selector";
+import type { SelectedPath } from "@/lib/constants/onboarding";
 
 export default async function WelcomePage() {
   const supabase = await createClient();
@@ -35,7 +36,7 @@ export default async function WelcomePage() {
         </p>
       </div>
 
-      <WelcomePathSelector defaultPath={profile?.selected_path ?? undefined} />
+      <WelcomePathSelector defaultPath={profile?.selected_path as SelectedPath | undefined} />
     </div>
   );
 }
