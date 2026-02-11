@@ -34,8 +34,15 @@ export function LoginForm() {
       return;
     }
 
+    // Check onboarding status to decide where to redirect
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("onboarding_completed")
+      .eq("id", (await supabase.auth.getUser()).data.user!.id)
+      .single();
+
     close();
-    router.push("/dashboard");
+    router.push(profile?.onboarding_completed ? "/dashboard" : "/onboarding/welcome");
     router.refresh();
   }
 

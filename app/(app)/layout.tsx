@@ -16,6 +16,17 @@ export default async function AppLayout({
     redirect("/");
   }
 
+  // If onboarding isn't complete, redirect to onboarding
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("onboarding_completed")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.onboarding_completed) {
+    redirect("/onboarding/welcome");
+  }
+
   return (
     <>
       <AppHeader email={user.email ?? ""} />
