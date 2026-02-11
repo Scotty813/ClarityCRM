@@ -146,7 +146,7 @@ export async function getUserOrganizations(): Promise<UserOrganization[]> {
   if (error) throw new Error(error.message);
 
   return data.map((m) => {
-    const org = m.organization as unknown as { id: string; name: string };
-    return { id: org.id, name: org.name, role: m.role };
+    const org = m.organization;
+    return { id: org!.id, name: org!.name, role: m.role };
   });
 }

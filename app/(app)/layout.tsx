@@ -35,8 +35,8 @@ export default async function AppLayout({
     .order("created_at", { ascending: true });
 
   const organizations: UserOrganization[] = (memberships ?? []).map((m) => {
-    const org = m.organization as unknown as { id: string; name: string };
-    return { id: org.id, name: org.name, role: m.role };
+    const org = m.organization;
+    return { id: org!.id, name: org!.name, role: m.role };
   });
 
   // Resolve active org with fallback

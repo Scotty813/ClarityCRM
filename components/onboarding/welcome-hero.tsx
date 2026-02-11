@@ -1,8 +1,8 @@
 import { Target, Users, BarChart3, Compass } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { Profile } from "@/lib/types/database";
+import type { SelectedPath } from "@/lib/constants/onboarding";
 
-const ctaConfig = {
+const ctaConfig: Record<SelectedPath, { icon: typeof Target; title: string; description: string }> = {
   leads: {
     icon: Target,
     title: "Start tracking leads",
@@ -23,16 +23,20 @@ const ctaConfig = {
     title: "Explore ClarityCRM",
     description: "Take a look around and discover what you can do.",
   },
-} as const;
+};
+
+function isSelectedPath(value: string): value is SelectedPath {
+  return value in ctaConfig;
+}
 
 interface WelcomeHeroProps {
   userName: string | null;
-  selectedPath: Profile["selected_path"];
+  selectedPath: string | null;
   orgName?: string | null;
 }
 
 export function WelcomeHero({ userName, selectedPath, orgName }: WelcomeHeroProps) {
-  const path = selectedPath ?? "exploring";
+  const path = selectedPath && isSelectedPath(selectedPath) ? selectedPath : "exploring";
   const cta = ctaConfig[path];
   const Icon = cta.icon;
 
