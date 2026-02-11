@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app/app-header";
+import type { UserOrganization } from "@/lib/types/database";
 
 export default async function AppLayout({
   children,
@@ -16,10 +17,9 @@ export default async function AppLayout({
     redirect("/");
   }
 
-  // If onboarding isn't complete, redirect to onboarding
   const { data: profile } = await supabase
     .from("profiles")
-    .select("onboarding_completed")
+    .select("onboarding_completed, active_org_id")
     .eq("id", user.id)
     .single();
 
@@ -27,9 +27,36 @@ export default async function AppLayout({
     redirect("/onboarding/welcome");
   }
 
+  // Fetch user's org memberships
+  const { data: memberships } = await supabase
+    .from("organization_members")
+    .select("role, organization:organizations(id, name)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+
+  const organizations: UserOrganization[] = (memberships ?? []).map((m) => {
+    const org = m.organization as unknown as { id: string; name: string };
+    return { id: org.id, name: org.name, role: m.role };
+  });
+
+  // Resolve active org with fallback
+  let activeOrgId = profile.active_org_id;
+  if (!activeOrgId && organizations.length > 0) {
+    activeOrgId = organizations[0].id;
+    // Auto-heal
+    await supabase
+      .from("profiles")
+      .update({ active_org_id: activeOrgId })
+      .eq("id", user.id);
+  }
+
   return (
     <>
-      <AppHeader email={user.email ?? ""} />
+      <AppHeader
+        email={user.email ?? ""}
+        organizations={organizations}
+        activeOrgId={activeOrgId ?? ""}
+      />
       {children}
     </>
   );
