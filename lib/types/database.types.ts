@@ -19,7 +19,7 @@ export type Database = {
           created_at: string
           id: string
           organization_id: string
-          role: string
+          role: Database["public"]["Enums"]["member_role"]
           updated_at: string
           user_id: string
         }
@@ -27,7 +27,7 @@ export type Database = {
           created_at?: string
           id?: string
           organization_id: string
-          role?: string
+          role?: Database["public"]["Enums"]["member_role"]
           updated_at?: string
           user_id: string
         }
@@ -35,7 +35,7 @@ export type Database = {
           created_at?: string
           id?: string
           organization_id?: string
-          role?: string
+          role?: Database["public"]["Enums"]["member_role"]
           updated_at?: string
           user_id?: string
         }
@@ -45,6 +45,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "organization_members_profiles_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -84,6 +91,7 @@ export type Database = {
           active_org_id: string | null
           avatar_url: string | null
           created_at: string
+          email: string | null
           full_name: string | null
           id: string
           onboarding_completed: boolean
@@ -95,6 +103,7 @@ export type Database = {
           active_org_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id: string
           onboarding_completed?: boolean
@@ -106,6 +115,7 @@ export type Database = {
           active_org_id?: string | null
           avatar_url?: string | null
           created_at?: string
+          email?: string | null
           full_name?: string | null
           id?: string
           onboarding_completed?: boolean
@@ -131,7 +141,7 @@ export type Database = {
       is_member_of: { Args: { org_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      member_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -258,6 +268,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      member_role: ["owner", "admin", "member"],
+    },
   },
 } as const
