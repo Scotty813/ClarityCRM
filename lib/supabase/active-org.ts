@@ -21,7 +21,7 @@ export async function getActiveOrganization(): Promise<{ orgId: string; userId: 
 
   // Fallback: pick the user's oldest org membership and auto-heal
   const { data: membership } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .select("organization_id")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true })

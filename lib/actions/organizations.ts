@@ -32,7 +32,7 @@ export async function createOrganization(formData: {
 
   // Add creator as owner
   const { error: memberError } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .insert({
       organization_id: org.id,
       user_id: user.id,
@@ -78,7 +78,7 @@ export async function createAdditionalOrganization(formData: {
   if (orgError) throw new Error(orgError.message);
 
   const { error: memberError } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .insert({
       organization_id: org.id,
       user_id: user.id,
@@ -109,7 +109,7 @@ export async function switchOrganization(organizationId: string) {
 
   // Verify user is a member of this org
   const { data: membership, error: memberError } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .select("id")
     .eq("organization_id", organizationId)
     .eq("user_id", user.id)
@@ -138,7 +138,7 @@ export async function getUserOrganizations(): Promise<UserOrganization[]> {
   if (!user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
-    .from("organization_members")
+    .from("organization_users")
     .select("role, organization:organizations(id, name)")
     .eq("user_id", user.id)
     .order("created_at", { ascending: true });

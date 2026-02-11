@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getInitials } from "@/lib/utils";
-import type { MemberRole, OrgMember } from "@/lib/types/database";
+import type { MemberRole, OrgUser } from "@/lib/types/database";
 
 const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> = {
   owner: "default",
@@ -21,32 +21,32 @@ const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> 
 };
 
 interface UserDetailDialogProps {
-  member: OrgMember | null;
+  user: OrgUser | null;
   onClose: () => void;
 }
 
-export function UserDetailDialog({ member, onClose }: UserDetailDialogProps) {
+export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
   return (
-    <Dialog open={!!member} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={!!user} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
-        {member && (
+        {user && (
           <>
             <DialogHeader className="flex-row items-center gap-4 space-y-0">
               <Avatar size="lg">
                 <AvatarImage
-                  src={member.avatar_url ?? undefined}
-                  alt={member.full_name ?? "User"}
+                  src={user.avatar_url ?? undefined}
+                  alt={user.full_name ?? "User"}
                 />
                 <AvatarFallback>
-                  {getInitials(member.full_name)}
+                  {getInitials(user.full_name)}
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
                 <DialogTitle className="truncate">
-                  {member.full_name ?? "Unnamed User"}
+                  {user.full_name ?? "Unnamed User"}
                 </DialogTitle>
                 <DialogDescription className="truncate">
-                  {member.email ?? "No email"}
+                  {user.email ?? "No email"}
                 </DialogDescription>
               </div>
             </DialogHeader>
@@ -54,8 +54,8 @@ export function UserDetailDialog({ member, onClose }: UserDetailDialogProps) {
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">Role</span>
-                <Badge variant={roleBadgeVariant[member.role]}>
-                  {member.role}
+                <Badge variant={roleBadgeVariant[user.role]}>
+                  {user.role}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
@@ -63,7 +63,7 @@ export function UserDetailDialog({ member, onClose }: UserDetailDialogProps) {
                   Joined
                 </span>
                 <span className="text-sm">
-                  {new Date(member.created_at).toLocaleDateString("en-US", {
+                  {new Date(user.created_at).toLocaleDateString("en-US", {
                     month: "long",
                     day: "numeric",
                     year: "numeric",

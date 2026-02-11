@@ -14,7 +14,7 @@ export type Database = {
   }
   public: {
     Tables: {
-      organization_members: {
+      organization_users: {
         Row: {
           created_at: string
           id: string
@@ -41,14 +41,14 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "organization_members_organization_id_fkey"
+            foreignKeyName: "organization_users_organization_id_fkey"
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "organization_members_profiles_fkey"
+            foreignKeyName: "organization_users_profiles_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"

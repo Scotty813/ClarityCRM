@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { getInitials } from "@/lib/utils";
 import { UserDetailDialog } from "./user-detail-dialog";
-import type { MemberRole, OrgMember } from "@/lib/types/database";
+import type { MemberRole, OrgUser } from "@/lib/types/database";
 
 const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> = {
   owner: "default",
@@ -25,16 +25,16 @@ const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> 
 };
 
 interface UsersTableProps {
-  members: OrgMember[];
+  users: OrgUser[];
   orgName: string;
 }
 
-export function UsersTable({ members, orgName }: UsersTableProps) {
+export function UsersTable({ users, orgName }: UsersTableProps) {
   const [search, setSearch] = useState("");
-  const [selectedMember, setSelectedMember] = useState<OrgMember | null>(null);
+  const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
 
   const query = search.toLowerCase();
-  const filtered = members.filter(
+  const filtered = users.filter(
     (m) =>
       m.full_name?.toLowerCase().includes(query) ||
       m.email?.toLowerCase().includes(query)
@@ -48,7 +48,7 @@ export function UsersTable({ members, orgName }: UsersTableProps) {
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
             <p className="text-sm text-muted-foreground">
-              {members.length} {members.length === 1 ? "user" : "users"} in{" "}
+              {users.length} {users.length === 1 ? "user" : "users"} in{" "}
               {orgName}
             </p>
           </div>
@@ -85,40 +85,40 @@ export function UsersTable({ members, orgName }: UsersTableProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((member) => (
+                {filtered.map((user) => (
                   <TableRow
-                    key={member.id}
+                    key={user.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedMember(member)}
+                    onClick={() => setSelectedUser(user)}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="default">
                           <AvatarImage
-                            src={member.avatar_url ?? undefined}
-                            alt={member.full_name ?? "User"}
+                            src={user.avatar_url ?? undefined}
+                            alt={user.full_name ?? "User"}
                           />
                           <AvatarFallback>
-                            {getInitials(member.full_name)}
+                            {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <p className="truncate font-medium">
-                            {member.full_name ?? "Unnamed User"}
+                            {user.full_name ?? "Unnamed User"}
                           </p>
                           <p className="truncate text-sm text-muted-foreground">
-                            {member.email ?? "No email"}
+                            {user.email ?? "No email"}
                           </p>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant={roleBadgeVariant[member.role]}>
-                        {member.role}
+                      <Badge variant={roleBadgeVariant[user.role]}>
+                        {user.role}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {new Date(member.created_at).toLocaleDateString(
+                      {new Date(user.created_at).toLocaleDateString(
                         "en-US",
                         {
                           month: "short",
@@ -136,8 +136,8 @@ export function UsersTable({ members, orgName }: UsersTableProps) {
       </div>
 
       <UserDetailDialog
-        member={selectedMember}
-        onClose={() => setSelectedMember(null)}
+        user={selectedUser}
+        onClose={() => setSelectedUser(null)}
       />
     </>
   );
