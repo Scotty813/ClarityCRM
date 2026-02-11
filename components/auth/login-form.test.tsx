@@ -12,12 +12,16 @@ vi.mock("next/navigation", () => ({
 
 const mockSignInWithPassword = vi.fn();
 const mockSignInWithOAuth = vi.fn();
+const mockGetUser = vi.fn();
+const mockFrom = vi.fn();
 vi.mock("@/lib/supabase/client", () => ({
   createClient: () => ({
     auth: {
       signInWithPassword: mockSignInWithPassword,
       signInWithOAuth: mockSignInWithOAuth,
+      getUser: mockGetUser,
     },
+    from: mockFrom,
   }),
 }));
 
@@ -53,8 +57,21 @@ describe("LoginForm", () => {
     expect(screen.getByRole("button", { name: "Sign up" })).toBeInTheDocument();
   });
 
-  it("calls signInWithPassword on submit and redirects on success", async () => {
+  it("calls signInWithPassword on submit and redirects based on onboarding status", async () => {
     mockSignInWithPassword.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+    });
+    mockFrom.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: () =>
+            Promise.resolve({
+              data: { onboarding_completed: true },
+            }),
+        }),
+      }),
+    });
     const user = userEvent.setup();
 
     renderWithProvider();
@@ -66,7 +83,38 @@ describe("LoginForm", () => {
       email: "test@example.com",
       password: "password123",
     });
-    expect(mockPush).toHaveBeenCalledWith("/dashboard");
+
+    // Wait for async profile check to complete
+    await vi.waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/dashboard");
+    });
+  });
+
+  it("redirects to onboarding when onboarding is not completed", async () => {
+    mockSignInWithPassword.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123" } },
+    });
+    mockFrom.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: () =>
+            Promise.resolve({
+              data: { onboarding_completed: false },
+            }),
+        }),
+      }),
+    });
+    const user = userEvent.setup();
+
+    renderWithProvider();
+    await user.type(screen.getByLabelText("Email"), "test@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123");
+    await user.click(screen.getByRole("button", { name: "Sign in" }));
+
+    await vi.waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith("/onboarding/welcome");
+    });
   });
 
   it("displays error message on failed sign in", async () => {
