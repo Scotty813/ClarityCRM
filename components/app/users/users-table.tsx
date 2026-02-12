@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/table";
 import { getInitials } from "@/lib/utils";
 import { UserDetailDialog } from "./user-detail-dialog";
+import { InviteUserDialog } from "./invite-user-dialog";
 import type { MemberRole, OrgUser } from "@/lib/types/database";
 
 const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> = {
@@ -32,6 +33,7 @@ interface UsersTableProps {
 export function UsersTable({ users, orgName }: UsersTableProps) {
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const query = search.toLowerCase();
   const filtered = users.filter(
@@ -52,7 +54,7 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
               {orgName}
             </p>
           </div>
-          <Button disabled title="Coming soon">
+          <Button onClick={() => setInviteOpen(true)}>
             <UserPlus className="mr-1.5 size-4" />
             Invite User
           </Button>
@@ -139,6 +141,8 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
         user={selectedUser}
         onClose={() => setSelectedUser(null)}
       />
+
+      <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
     </>
   );
 }

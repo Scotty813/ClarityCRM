@@ -42,4 +42,6 @@ next-env.d.ts
 
 # AI
 CLAUDE.md
+AGENTS.md
 .mcp.json
+/tasks
