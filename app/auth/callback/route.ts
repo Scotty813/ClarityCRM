@@ -15,7 +15,7 @@ export async function GET(request: Request) {
         return NextResponse.redirect(`${origin}${next}`);
       }
 
-      // Otherwise, check onboarding status
+      // Check onboarding status
       const {
         data: { user },
       } = await supabase.auth.getUser();

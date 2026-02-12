@@ -37,11 +37,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Protect /dashboard and /onboarding routes — redirect to home if not authenticated
+  // Protect authenticated routes — redirect to home if not authenticated
   if (
     !user &&
     (request.nextUrl.pathname.startsWith("/dashboard") ||
-      request.nextUrl.pathname.startsWith("/onboarding"))
+      request.nextUrl.pathname.startsWith("/onboarding") ||
+      request.nextUrl.pathname.startsWith("/auth/set-password"))
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
