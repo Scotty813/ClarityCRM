@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -9,9 +9,33 @@ import { Button } from "@/components/ui/button";
 export default function InviteCallbackClientPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const hasRun = useRef(false);
 
   useEffect(() => {
+    if (hasRun.current) {
+      return;
+    }
+
+    hasRun.current = true;
+
     let cancelled = false;
+    const supabase = createClient();
+
+    function hasInviteMetadata(user: { user_metadata?: Record<string, unknown> } | null) {
+      const invitedOrg = user?.user_metadata?.invited_to_org;
+      return typeof invitedOrg === "string" && invitedOrg.length > 0;
+    }
+
+    function safelySetError(message: string) {
+      if (!cancelled) {
+        setError(message);
+      }
+    }
+
+    function redirectToSetPassword() {
+      window.history.replaceState(null, "", "/auth/invite-callback/client");
+      router.replace("/auth/set-password");
+    }
 
     async function completeInviteSignIn() {
       const hash = window.location.hash.startsWith("#")
@@ -22,31 +46,51 @@ export default function InviteCallbackClientPage() {
       const refreshToken = params.get("refresh_token");
 
       if (!accessToken || !refreshToken) {
-        if (!cancelled) {
-          setError("Invite link is missing session tokens.");
+        const {
+          data: { user },
+          error: userError,
+        } = await supabase.auth.getUser();
+
+        if (userError) {
+          safelySetError(userError.message);
+          return;
         }
+
+        if (hasInviteMetadata(user)) {
+          redirectToSetPassword();
+          return;
+        }
+
+        safelySetError("Invite link is missing session tokens.");
         return;
       }
 
-      const supabase = createClient();
-
-      // Ensure we fully replace any current browser session.
-      await supabase.auth.signOut({ scope: "local" });
       const { error: sessionError } = await supabase.auth.setSession({
         access_token: accessToken,
         refresh_token: refreshToken,
       });
 
       if (sessionError) {
-        if (!cancelled) {
-          setError(sessionError.message);
-        }
+        safelySetError(sessionError.message);
         return;
       }
 
-      window.history.replaceState(null, "", "/auth/invite-callback/client");
-      router.replace("/auth/set-password");
-      router.refresh();
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser();
+
+      if (userError) {
+        safelySetError(userError.message);
+        return;
+      }
+
+      if (!user) {
+        safelySetError("Failed to establish session from invite link.");
+        return;
+      }
+
+      redirectToSetPassword();
     }
 
     void completeInviteSignIn();
