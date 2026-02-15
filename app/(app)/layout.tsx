@@ -55,15 +55,13 @@ export default async function AppLayout({
     organizations.find((o) => o.id === activeOrgId)?.role ?? "member";
 
   return (
-    <>
+    <PermissionsProvider role={activeRole}>
       <AppHeader
         email={user.email ?? ""}
         organizations={organizations}
         activeOrgId={activeOrgId ?? ""}
       />
-      <PermissionsProvider role={activeRole}>
-        {children}
-      </PermissionsProvider>
-    </>
+      {children}
+    </PermissionsProvider>
   );
 }

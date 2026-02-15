@@ -18,6 +18,7 @@ const PERMISSION_LEVEL = {
   "org:read": "member",
   "org:edit": "admin",
   "org:delete": "owner",
+  "org:switch": "owner",
 
   // Members
   "member:read": "member",

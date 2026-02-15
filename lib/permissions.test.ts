@@ -11,6 +11,7 @@ describe("can()", () => {
     expect(can("member", "member:invite")).toBe(false);
     expect(can("member", "member:remove")).toBe(false);
     expect(can("member", "org:edit")).toBe(false);
+    expect(can("member", "org:switch")).toBe(false);
   });
 
   it("grants admins invite and remove but not owner-level", () => {
@@ -19,12 +20,14 @@ describe("can()", () => {
     expect(can("admin", "org:edit")).toBe(true);
     expect(can("admin", "member:edit-role")).toBe(false);
     expect(can("admin", "org:delete")).toBe(false);
+    expect(can("admin", "org:switch")).toBe(false);
   });
 
   it("grants owners everything", () => {
     expect(can("owner", "member:invite")).toBe(true);
     expect(can("owner", "member:edit-role")).toBe(true);
     expect(can("owner", "org:delete")).toBe(true);
+    expect(can("owner", "org:switch")).toBe(true);
   });
 
   it("respects strict hierarchy — higher role inherits all lower permissions", () => {
@@ -32,6 +35,7 @@ describe("can()", () => {
       "org:read",
       "org:edit",
       "org:delete",
+      "org:switch",
       "member:read",
       "member:invite",
       "member:remove",
@@ -63,11 +67,12 @@ describe("permissionsForRole()", () => {
     expect(perms).toContain("member:remove");
     expect(perms).toContain("org:edit");
     expect(perms).not.toContain("org:delete");
+    expect(perms).not.toContain("org:switch");
     expect(perms).not.toContain("member:edit-role");
   });
 
   it("returns all permissions for owner", () => {
     const perms = permissionsForRole("owner");
-    expect(perms).toHaveLength(7);
+    expect(perms).toHaveLength(8);
   });
 });
