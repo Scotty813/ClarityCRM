@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { AppHeader } from "@/components/app/app-header";
+import { PermissionsProvider } from "@/lib/hooks/use-permissions";
 import type { UserOrganization } from "@/lib/types/database";
 
 export default async function AppLayout({
@@ -50,6 +51,9 @@ export default async function AppLayout({
       .eq("id", user.id);
   }
 
+  const activeRole =
+    organizations.find((o) => o.id === activeOrgId)?.role ?? "member";
+
   return (
     <>
       <AppHeader
@@ -57,7 +61,9 @@ export default async function AppLayout({
         organizations={organizations}
         activeOrgId={activeOrgId ?? ""}
       />
-      {children}
+      <PermissionsProvider role={activeRole}>
+        {children}
+      </PermissionsProvider>
     </>
   );
 }

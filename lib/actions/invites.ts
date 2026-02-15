@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
-import { getActiveOrganization } from "@/lib/supabase/active-org";
+import { tryAuthorize } from "@/lib/supabase/authorize";
+import { can } from "@/lib/permissions";
 import type { MemberRole } from "@/lib/types/database";
 
 const MEMBER_ROLES: MemberRole[] = ["owner", "admin", "member"];
@@ -30,22 +31,16 @@ async function getAppOrigin() {
 
 export async function inviteUser(email: string, role: MemberRole) {
   const supabase = await createClient();
-  const { orgId, userId } = await getActiveOrganization();
 
-  // Check caller's role — must be owner or admin
-  const { data: callerMembership } = await supabase
-    .from("organization_users")
-    .select("role")
-    .eq("organization_id", orgId)
-    .eq("user_id", userId)
-    .single();
-
-  if (!callerMembership || callerMembership.role === "member") {
-    return { success: false, error: "You don't have permission to invite users" };
+  const result = await tryAuthorize("member:invite");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
   }
 
+  const { orgId } = result.context;
+
   // Only owners can assign the owner role
-  if (role === "owner" && callerMembership.role !== "owner") {
+  if (role === "owner" && !can(result.context.role, "member:edit-role")) {
     return { success: false, error: "Only owners can assign the owner role" };
   }
 
