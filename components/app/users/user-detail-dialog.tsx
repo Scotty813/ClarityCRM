@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { getInitials } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import type { MemberRole, OrgUser } from "@/lib/types/database";
 
 const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> = {
@@ -26,6 +27,8 @@ interface UserDetailDialogProps {
 }
 
 export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
+  const { can } = usePermissions();
+
   return (
     <Dialog open={!!user} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-md">
@@ -78,8 +81,8 @@ export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
               <Button
                 variant="outline"
                 size="sm"
-                disabled
-                title="Coming soon"
+                disabled={!can("member:edit-role")}
+                title={can("member:edit-role") ? undefined : "Only owners can edit roles"}
                 className="flex-1"
               >
                 Edit Role
@@ -87,8 +90,8 @@ export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
               <Button
                 variant="destructive"
                 size="sm"
-                disabled
-                title="Coming soon"
+                disabled={!can("member:remove")}
+                title={can("member:remove") ? undefined : "You don't have permission to remove users"}
                 className="flex-1"
               >
                 Remove User

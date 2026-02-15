@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getInitials } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import { UserDetailDialog } from "./user-detail-dialog";
 import { InviteUserDialog } from "./invite-user-dialog";
 import type { MemberRole, OrgUser } from "@/lib/types/database";
@@ -31,6 +32,7 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ users, orgName }: UsersTableProps) {
+  const { can } = usePermissions();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -54,10 +56,12 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
               {orgName}
             </p>
           </div>
-          <Button onClick={() => setInviteOpen(true)}>
-            <UserPlus className="mr-1.5 size-4" />
-            Invite User
-          </Button>
+          {can("member:invite") && (
+            <Button onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-1.5 size-4" />
+              Invite User
+            </Button>
+          )}
         </div>
 
         {/* Search */}

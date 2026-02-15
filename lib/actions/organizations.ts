@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { authorize } from "@/lib/supabase/authorize";
 import type { UserOrganization } from "@/lib/types/database";
 
 export async function createOrganization(formData: {
@@ -100,19 +101,16 @@ export async function createAdditionalOrganization(formData: {
 }
 
 export async function switchOrganization(organizationId: string) {
+  const { userId } = await authorize("org:switch");
+
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
-  if (!user) throw new Error("Not authenticated");
-
-  // Verify user is a member of this org
+  // Verify user is a member of the target org
   const { data: membership, error: memberError } = await supabase
     .from("organization_users")
     .select("id")
     .eq("organization_id", organizationId)
-    .eq("user_id", user.id)
+    .eq("user_id", userId)
     .single();
 
   if (memberError || !membership) {
@@ -122,7 +120,7 @@ export async function switchOrganization(organizationId: string) {
   const { error: profileError } = await supabase
     .from("profiles")
     .update({ active_org_id: organizationId })
-    .eq("id", user.id);
+    .eq("id", userId);
 
   if (profileError) throw new Error(profileError.message);
 

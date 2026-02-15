@@ -4,8 +4,9 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { Building2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import { OrgSwitcher } from "@/components/app/org-switcher";
 import { AppMobileNav } from "@/components/app/app-mobile-nav";
 import type { UserOrganization } from "@/lib/types/database";
@@ -24,6 +25,7 @@ const navLinks = [
 export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { can } = usePermissions();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -41,7 +43,16 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
               ClarityCRM
             </a>
             <span className="text-border">/</span>
-            <OrgSwitcher organizations={organizations} activeOrgId={activeOrgId} />
+            {can("org:switch") ? (
+              <OrgSwitcher organizations={organizations} activeOrgId={activeOrgId} />
+            ) : (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium">
+                <Building2 className="size-4 shrink-0 text-muted-foreground" />
+                <span className="max-w-[160px] truncate">
+                  {organizations.find((o) => o.id === activeOrgId)?.name ?? "Organization"}
+                </span>
+              </span>
+            )}
           </div>
           <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (

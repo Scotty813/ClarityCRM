@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { inviteUser } from "@/lib/actions/invites";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import type { MemberRole } from "@/lib/types/database";
 
 interface InviteUserDialogProps {
@@ -29,6 +30,7 @@ interface InviteUserDialogProps {
 }
 
 export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
+  const { can } = usePermissions();
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<MemberRole>("member");
   const [loading, setLoading] = useState(false);
@@ -91,7 +93,9 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
               <SelectContent>
                 <SelectItem value="member">Member</SelectItem>
                 <SelectItem value="admin">Admin</SelectItem>
-                <SelectItem value="owner">Owner</SelectItem>
+                {can("member:edit-role") && (
+                  <SelectItem value="owner">Owner</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>
