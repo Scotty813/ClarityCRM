@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut, Users } from "lucide-react";
+import { Menu, LogOut, Monitor, Moon, Sun, Users } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -29,6 +30,7 @@ interface AppMobileNavProps {
 export function AppMobileNav({ email, navLinks, onSignOut }: AppMobileNavProps) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
 
   function handleSignOut() {
     setOpen(false);
@@ -85,6 +87,32 @@ export function AppMobileNav({ email, navLinks, onSignOut }: AppMobileNavProps) 
           </SheetClose>
         </nav>
         <SheetFooter>
+          <div className="flex items-center justify-center gap-1">
+            <Button
+              variant={theme === "light" ? "secondary" : "ghost"}
+              size="icon-sm"
+              onClick={() => setTheme("light")}
+              aria-label="Light theme"
+            >
+              <Sun className="size-4" />
+            </Button>
+            <Button
+              variant={theme === "dark" ? "secondary" : "ghost"}
+              size="icon-sm"
+              onClick={() => setTheme("dark")}
+              aria-label="Dark theme"
+            >
+              <Moon className="size-4" />
+            </Button>
+            <Button
+              variant={theme === "system" ? "secondary" : "ghost"}
+              size="icon-sm"
+              onClick={() => setTheme("system")}
+              aria-label="System theme"
+            >
+              <Monitor className="size-4" />
+            </Button>
+          </div>
           <span className="truncate text-center text-sm text-muted-foreground">
             {email}
           </span>
