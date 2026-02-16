@@ -77,7 +77,7 @@ export async function inviteUser(email: string, role: MemberRole) {
       return { success: false, error: insertError.message };
     }
 
-    revalidatePath("/users");
+    revalidatePath("/settings/team");
     return { success: true };
   }
 
@@ -98,7 +98,7 @@ export async function inviteUser(email: string, role: MemberRole) {
     return { success: false, error: inviteError.message };
   }
 
-  revalidatePath("/users");
+  revalidatePath("/settings/team");
   return { success: true };
 }
 
