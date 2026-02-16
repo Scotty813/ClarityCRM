@@ -50,9 +50,9 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Team members</h1>
             <p className="text-sm text-muted-foreground">
-              {users.length} {users.length === 1 ? "user" : "users"} in{" "}
+              {users.length} {users.length === 1 ? "member" : "members"} in{" "}
               {orgName}
             </p>
           </div>
