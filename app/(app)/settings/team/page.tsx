@@ -3,7 +3,7 @@ import { getActiveOrganization } from "@/lib/supabase/active-org";
 import { UsersTable } from "@/components/app/users/users-table";
 import type { OrgUser } from "@/lib/types/database";
 
-export default async function UsersPage() {
+export default async function SettingsTeamPage() {
   const supabase = await createClient();
   const { orgId } = await getActiveOrganization();
 
@@ -38,9 +38,5 @@ export default async function UsersPage() {
     };
   });
 
-  return (
-    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
-      <UsersTable users={orgUsers} orgName={org?.name ?? "Organization"} />
-    </div>
-  );
+  return <UsersTable users={orgUsers} orgName={org?.name ?? "Organization"} />;
 }

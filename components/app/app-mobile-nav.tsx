@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -68,6 +68,21 @@ export function AppMobileNav({ email, navLinks, onSignOut }: AppMobileNavProps) 
               </Link>
             </SheetClose>
           ))}
+          <div className="my-2 border-t border-border" />
+          <SheetClose asChild>
+            <Link
+              href="/settings/team"
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                pathname.startsWith("/settings")
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <Settings className="size-4" />
+              Settings
+            </Link>
+          </SheetClose>
         </nav>
         <SheetFooter>
           <span className="truncate text-center text-sm text-muted-foreground">

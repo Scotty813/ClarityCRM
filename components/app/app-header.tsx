@@ -4,7 +4,13 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Building2, LogOut } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Building2, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { OrgSwitcher } from "@/components/app/org-switcher";
@@ -19,7 +25,8 @@ interface AppHeaderProps {
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/users", label: "Users" },
+  { href: "/contacts", label: "Contacts" },
+  { href: "/companies", label: "Companies" },
 ];
 
 export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps) {
@@ -72,8 +79,25 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">{email}</span>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon-sm" asChild>
+                    <Link
+                      href="/settings/team"
+                      className={cn(
+                        pathname.startsWith("/settings") && "bg-accent text-accent-foreground"
+                      )}
+                    >
+                      <Settings className="size-4" />
+                    </Link>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Settings</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="mr-1.5 size-4" />
               Log out
