@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut, Settings } from "lucide-react";
+import { Menu, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -79,8 +79,8 @@ export function AppMobileNav({ email, navLinks, onSignOut }: AppMobileNavProps) 
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}
             >
-              <Settings className="size-4" />
-              Settings
+              <Users className="size-4" />
+              Team members
             </Link>
           </SheetClose>
         </nav>

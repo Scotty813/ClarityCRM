@@ -5,12 +5,13 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Building2, LogOut, Settings } from "lucide-react";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Building2, LogOut, Settings, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { OrgSwitcher } from "@/components/app/org-switcher";
@@ -81,27 +82,32 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
         <div className="flex items-center gap-4">
           <div className="hidden items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">{email}</span>
-            <TooltipProvider delayDuration={0}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" asChild>
-                    <Link
-                      href="/settings/team"
-                      className={cn(
-                        pathname.startsWith("/settings") && "bg-accent text-accent-foreground"
-                      )}
-                    >
-                      <Settings className="size-4" />
-                    </Link>
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Settings</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="mr-1.5 size-4" />
-              Log out
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className={cn(
+                    pathname.startsWith("/settings") && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  <Settings className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/team">
+                    <Users className="size-4" />
+                    Team members
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+                  <LogOut className="size-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <AppMobileNav email={email} navLinks={navLinks} onSignOut={handleSignOut} />
         </div>
