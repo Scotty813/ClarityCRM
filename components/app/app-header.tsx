@@ -9,9 +9,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Building2, LogOut, Settings, Users } from "lucide-react";
+import { Building2, Check, LogOut, Monitor, Moon, Settings, Sun, Users } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { OrgSwitcher } from "@/components/app/org-switcher";
@@ -34,6 +38,7 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
   const router = useRouter();
   const pathname = usePathname();
   const { can } = usePermissions();
+  const { theme, setTheme } = useTheme();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -101,6 +106,30 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
                     Team members
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Sun className="size-4 dark:hidden" />
+                    <Moon className="hidden size-4 dark:block" />
+                    Theme
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                      <Sun className="size-4" />
+                      Light
+                      {theme === "light" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                      <Moon className="size-4" />
+                      Dark
+                      {theme === "dark" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                      <Monitor className="size-4" />
+                      System
+                      {theme === "system" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
                   <LogOut className="size-4" />
