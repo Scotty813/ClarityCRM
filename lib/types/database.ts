@@ -48,3 +48,36 @@ export interface ContactFormData {
   company_id: string;
   notes: string;
 }
+
+// Deals
+export type Deal = Database["public"]["Tables"]["deals"]["Row"];
+export type DealActivity = Database["public"]["Tables"]["deal_activities"]["Row"];
+export type DealTask = Database["public"]["Tables"]["deal_tasks"]["Row"];
+export type DealStage = Database["public"]["Enums"]["deal_stage"];
+export type DealActivityType = Database["public"]["Enums"]["deal_activity_type"];
+
+export interface DealWithRelations extends Deal {
+  contact_name: string | null;
+  company_name: string | null;
+  owner_name: string | null;
+}
+
+export interface DealFormData {
+  name: string;
+  value: string;
+  stage: DealStage;
+  expected_close_date: string;
+  owner_id: string;
+  contact_id: string;
+  company_id: string;
+  notes: string;
+}
+
+export interface DealActivityWithAuthor extends DealActivity {
+  author_name: string | null;
+}
+
+export interface DealTaskFormData {
+  title: string;
+  due_date: string;
+}

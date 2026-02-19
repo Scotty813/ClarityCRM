@@ -40,6 +40,15 @@ describe("can()", () => {
       "member:invite",
       "member:remove",
       "member:edit-role",
+      "company:create",
+      "company:edit",
+      "company:delete",
+      "contact:create",
+      "contact:edit",
+      "contact:delete",
+      "deal:create",
+      "deal:edit",
+      "deal:delete",
     ];
 
     for (const perm of allPermissions) {
@@ -55,10 +64,21 @@ describe("can()", () => {
 });
 
 describe("permissionsForRole()", () => {
-  it("returns only read permissions for member", () => {
+  it("returns only member-level permissions for member", () => {
     const perms = permissionsForRole("member");
-    expect(perms).toEqual(expect.arrayContaining(["org:read", "member:read"]));
-    expect(perms).toHaveLength(2);
+    expect(perms).toEqual(
+      expect.arrayContaining([
+        "org:read",
+        "member:read",
+        "company:create",
+        "company:edit",
+        "contact:create",
+        "contact:edit",
+        "deal:create",
+        "deal:edit",
+      ])
+    );
+    expect(perms).toHaveLength(8);
   });
 
   it("returns admin-level permissions for admin", () => {
@@ -66,6 +86,9 @@ describe("permissionsForRole()", () => {
     expect(perms).toContain("member:invite");
     expect(perms).toContain("member:remove");
     expect(perms).toContain("org:edit");
+    expect(perms).toContain("company:delete");
+    expect(perms).toContain("contact:delete");
+    expect(perms).toContain("deal:delete");
     expect(perms).not.toContain("org:delete");
     expect(perms).not.toContain("org:switch");
     expect(perms).not.toContain("member:edit-role");
@@ -73,6 +96,6 @@ describe("permissionsForRole()", () => {
 
   it("returns all permissions for owner", () => {
     const perms = permissionsForRole("owner");
-    expect(perms).toHaveLength(8);
+    expect(perms).toHaveLength(17);
   });
 });
