@@ -139,6 +139,200 @@ export type Database = {
           },
         ]
       }
+      deal_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          content: string | null
+          created_at: string
+          created_by: string
+          deal_id: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          content?: string | null
+          created_at?: string
+          created_by: string
+          deal_id: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["deal_activity_type"]
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          created_by: string
+          deal_id: string
+          due_date: string | null
+          id: string
+          organization_id: string
+          title: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          created_by: string
+          deal_id: string
+          due_date?: string | null
+          id?: string
+          organization_id: string
+          title: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          due_date?: string | null
+          id?: string
+          organization_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          expected_close_date: string | null
+          id: string
+          name: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          stage: Database["public"]["Enums"]["deal_stage"]
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by: string
+          expected_close_date?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          expected_close_date?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_users: {
         Row: {
           created_at: string
@@ -266,6 +460,8 @@ export type Database = {
       is_member_of: { Args: { org_id: string }; Returns: boolean }
     }
     Enums: {
+      deal_activity_type: "note" | "stage_change" | "call" | "email" | "meeting"
+      deal_stage: "qualified" | "proposal" | "negotiation" | "won" | "lost"
       member_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -394,6 +590,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      deal_activity_type: ["note", "stage_change", "call", "email", "meeting"],
+      deal_stage: ["qualified", "proposal", "negotiation", "won", "lost"],
       member_role: ["owner", "admin", "member"],
     },
   },

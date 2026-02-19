@@ -32,6 +32,7 @@ const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/contacts", label: "Contacts" },
   { href: "/companies", label: "Companies" },
+  { href: "/deals", label: "Deals" },
 ];
 
 export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps) {

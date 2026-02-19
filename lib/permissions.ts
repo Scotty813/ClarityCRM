@@ -35,6 +35,11 @@ const PERMISSION_LEVEL = {
   "contact:create": "member",
   "contact:edit": "member",
   "contact:delete": "admin",
+
+  // Deals
+  "deal:create": "member",
+  "deal:edit": "member",
+  "deal:delete": "admin",
 } as const satisfies Record<string, MemberRole>;
 
 export type Permission = keyof typeof PERMISSION_LEVEL;
