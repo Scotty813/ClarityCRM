@@ -16,7 +16,7 @@ export async function getDealDetail(dealId: string) {
     return { success: false as const, error: result.error };
   }
 
-  const { orgId } = result.context;
+  const { orgId, userId, role } = result.context;
   const supabase = await createClient();
 
   const [
@@ -94,6 +94,8 @@ export async function getDealDetail(dealId: string) {
     activities: enrichedActivities,
     tasks: (tasks ?? []) as DealTask[],
     contactEmail: contact?.email ?? null,
+    currentUserId: userId,
+    currentUserRole: role,
   };
 }
 

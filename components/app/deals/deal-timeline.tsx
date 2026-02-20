@@ -1,37 +1,20 @@
 "use client";
 
-import {
-  ArrowRight,
-  FileText,
-  Mail,
-  Phone,
-  Users,
-} from "lucide-react";
+import { ArrowRight, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { STAGE_LABELS, ACTIVITY_TYPE_LABELS } from "@/lib/deals";
+import {
+  STAGE_LABELS,
+  ACTIVITY_TYPE_LABELS,
+  ACTIVITY_ICONS,
+  STAGE_BADGE_COLORS,
+} from "@/lib/deals";
 import { cn } from "@/lib/utils";
 import type { DealActivityWithAuthor, DealStage } from "@/lib/types/database";
 
 interface DealTimelineProps {
   activities: DealActivityWithAuthor[];
 }
-
-const ACTIVITY_ICONS: Record<string, typeof FileText> = {
-  note: FileText,
-  call: Phone,
-  email: Mail,
-  meeting: Users,
-  stage_change: ArrowRight,
-};
-
-const STAGE_BADGE_COLORS: Record<DealStage, string> = {
-  qualified: "",
-  proposal: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  negotiation: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  won: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  lost: "bg-destructive/10 text-destructive",
-};
 
 export function DealTimeline({ activities }: DealTimelineProps) {
   if (activities.length === 0) {

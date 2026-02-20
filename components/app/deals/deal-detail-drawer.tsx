@@ -34,7 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { DEAL_STAGES, STAGE_LABELS } from "@/lib/deals";
+import { DEAL_STAGES, STAGE_LABELS, STAGE_BADGE_COLORS } from "@/lib/deals";
+import { can } from "@/lib/permissions";
 import { getDealDetail, getDealFieldOptions } from "@/lib/actions/deal-detail";
 import {
   updateDealStage,
@@ -43,6 +44,7 @@ import {
 } from "@/lib/actions/deals";
 import { cn } from "@/lib/utils";
 import { DealActivityComposer } from "./deal-activity-composer";
+import { DealActivityList } from "./deal-activity-list";
 import { DealTimeline } from "./deal-timeline";
 import { DealTasks } from "./deal-tasks";
 import { CloseDealDialog } from "./close-deal-dialog";
@@ -62,14 +64,6 @@ interface DealDetailDrawerProps {
   dealId: string | null;
   onClose: () => void;
 }
-
-const STAGE_BADGE_COLORS: Record<DealStage, string> = {
-  qualified: "",
-  proposal: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  negotiation: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-  won: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  lost: "bg-destructive/10 text-destructive",
-};
 
 export function DealDetailDrawer({ dealId, onClose }: DealDetailDrawerProps) {
   return (
@@ -94,6 +88,8 @@ function DrawerContent({ dealId }: { dealId: string }) {
   const [activities, setActivities] = useState<DealActivityWithAuthor[]>([]);
   const [tasks, setTasks] = useState<DealTask[]>([]);
   const [contactEmail, setContactEmail] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>("");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [closeDealVariant, setCloseDealVariant] = useState<"won" | "lost">(
@@ -116,6 +112,8 @@ function DrawerContent({ dealId }: { dealId: string }) {
           setActivities(result.activities);
           setTasks(result.tasks);
           setContactEmail(result.contactEmail);
+          setCurrentUserId(result.currentUserId);
+          setIsAdmin(can(result.currentUserRole, "deal:delete"));
         } else {
           toast.error(result.error);
         }
@@ -332,12 +330,12 @@ function DrawerContent({ dealId }: { dealId: string }) {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="contacts">Contacts</TabsTrigger>
+          <TabsTrigger value="timeline">Timeline</TabsTrigger>
         </TabsList>
 
-        <ScrollArea className="flex-1">
-          <div className="px-6 py-4">
-            <TabsContent value="overview" className="mt-0">
+        <TabsContent value="overview" className="mt-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="px-6 py-4">
               <div className="space-y-4">
                 <InlineEditField
                   icon={DollarSign}
@@ -410,55 +408,48 @@ function DrawerContent({ dealId }: { dealId: string }) {
                   </>
                 )}
               </div>
-            </TabsContent>
+            </div>
+          </ScrollArea>
+        </TabsContent>
 
-            <TabsContent value="activity" className="mt-0 space-y-6">
+        <TabsContent value="activity" className="mt-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="space-y-6 px-6 py-4">
               <DealActivityComposer
                 dealId={deal.id}
                 onMutationSuccess={handleMutationSuccess}
               />
-              <DealTimeline activities={activities} />
-            </TabsContent>
-
-            <TabsContent value="tasks" className="mt-0">
-              <DealTasks
-                tasks={tasks}
+              <DealActivityList
+                activities={activities.filter(
+                  (a) => a.activity_type !== "stage_change"
+                )}
                 dealId={deal.id}
+                currentUserId={currentUserId}
+                isAdmin={isAdmin}
                 onMutationSuccess={handleMutationSuccess}
               />
-            </TabsContent>
+            </div>
+          </ScrollArea>
+        </TabsContent>
 
-            <TabsContent value="contacts" className="mt-0">
-              <div className="space-y-4">
-                {deal.contact_name && (
-                  <div className="rounded-lg border p-4">
-                    <p className="text-xs text-muted-foreground">Contact</p>
-                    <p className="text-sm font-medium">{deal.contact_name}</p>
-                    {contactEmail && (
-                      <a
-                        href={`mailto:${contactEmail}`}
-                        className="text-xs text-primary hover:underline"
-                      >
-                        {contactEmail}
-                      </a>
-                    )}
-                  </div>
-                )}
-                {deal.company_name && (
-                  <div className="rounded-lg border p-4">
-                    <p className="text-xs text-muted-foreground">Company</p>
-                    <p className="text-sm font-medium">{deal.company_name}</p>
-                  </div>
-                )}
-                {!deal.contact_name && !deal.company_name && (
-                  <p className="py-8 text-center text-sm text-muted-foreground">
-                    No contacts or companies linked to this deal.
-                  </p>
-                )}
-              </div>
-            </TabsContent>
-          </div>
-        </ScrollArea>
+        <TabsContent
+          value="tasks"
+          className="mt-0 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col"
+        >
+          <DealTasks
+            tasks={tasks}
+            dealId={deal.id}
+            onMutationSuccess={handleMutationSuccess}
+          />
+        </TabsContent>
+
+        <TabsContent value="timeline" className="mt-0 overflow-hidden">
+          <ScrollArea className="h-full">
+            <div className="px-6 py-4">
+              <DealTimeline activities={activities} />
+            </div>
+          </ScrollArea>
+        </TabsContent>
       </Tabs>
 
       <CloseDealDialog
