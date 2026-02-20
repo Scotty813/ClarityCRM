@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   FileText,
   ListTodo,
@@ -77,7 +77,7 @@ export function DealDetailDrawer({ dealId, onClose }: DealDetailDrawerProps) {
         side="right"
         className="flex w-full flex-col gap-0 p-0 sm:max-w-xl"
       >
-        {dealId && <DrawerContent key={dealId} dealId={dealId} />}
+        {dealId && <DrawerContent dealId={dealId} />}
       </SheetContent>
     </Sheet>
   );
@@ -219,8 +219,16 @@ function DrawerContent({ dealId }: { dealId: string }) {
     [deal, fetchDetail]
   );
 
+  const initialLoad = useRef(true);
+
   useEffect(() => {
-    fetchDetail();
+    if (initialLoad.current) {
+      initialLoad.current = false;
+      fetchDetail();
+    } else {
+      setActiveTab("overview");
+      fetchDetail(true);
+    }
   }, [fetchDetail]);
 
   async function handleMoveStage(newStage: string) {
@@ -238,7 +246,7 @@ function DrawerContent({ dealId }: { dealId: string }) {
       toast.error(result.error);
     } else {
       toast.success(`Moved to ${STAGE_LABELS[stage]}`);
-      fetchDetail();
+      fetchDetail(true);
     }
   }
 
@@ -309,7 +317,7 @@ function DrawerContent({ dealId }: { dealId: string }) {
               <ArrowRightLeft className="mr-1.5 size-3.5" />
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {DEAL_STAGES.map((s) => (
                 <SelectItem key={s} value={s}>
                   {STAGE_LABELS[s]}
