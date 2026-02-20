@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -11,9 +11,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
 import { createDeal } from "@/lib/actions/deals";
 import { DealFormFields } from "./deal-form-fields";
-import type { DealFormData } from "@/lib/types/database";
+import { zodResolverCompat, dealFormSchema, type DealFormValues } from "@/lib/validations/deal";
 
 interface SelectOption {
   id: string;
@@ -28,7 +29,7 @@ interface CreateDealDialogProps {
   members: SelectOption[];
 }
 
-const EMPTY_FORM: DealFormData = {
+const DEFAULT_VALUES: DealFormValues = {
   name: "",
   value: "",
   stage: "qualified",
@@ -37,6 +38,7 @@ const EMPTY_FORM: DealFormData = {
   contact_id: "",
   company_id: "",
   notes: "",
+  lost_reason: "",
 };
 
 export function CreateDealDialog({
@@ -46,37 +48,30 @@ export function CreateDealDialog({
   companies,
   members,
 }: CreateDealDialogProps) {
-  const [form, setForm] = useState<DealFormData>(EMPTY_FORM);
-  const [loading, setLoading] = useState(false);
+  const form = useForm<DealFormValues>({
+    resolver: zodResolverCompat(dealFormSchema),
+    defaultValues: DEFAULT_VALUES,
+  });
 
-  function update(field: keyof DealFormData, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    setLoading(true);
-    try {
-      const result = await createDeal(form);
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      toast.success("Deal created");
-      setForm(EMPTY_FORM);
-      onOpenChange(false);
-    } catch {
-      toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
+  async function onSubmit(values: DealFormValues) {
+    const result = await createDeal(values);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    toast.success("Deal created");
+    form.reset(DEFAULT_VALUES);
+    onOpenChange(false);
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) form.reset(DEFAULT_VALUES);
+        onOpenChange(v);
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Deal</DialogTitle>
@@ -85,29 +80,30 @@ export function CreateDealDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <DealFormFields
-            form={form}
-            onChange={update}
-            contacts={contacts}
-            companies={companies}
-            members={members}
-            hideOwner
-          />
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
+            <DealFormFields
+              form={form}
+              contacts={contacts}
+              companies={companies}
+              members={members}
+              hideOwner
+            />
 
-          <DialogFooter className="mt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Deal"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Creating..." : "Create Deal"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

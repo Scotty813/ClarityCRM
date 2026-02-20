@@ -257,10 +257,12 @@ export type Database = {
           created_by: string
           expected_close_date: string | null
           id: string
+          lost_reason: string | null
           name: string
           notes: string | null
           organization_id: string
           owner_id: string | null
+          position: number
           stage: Database["public"]["Enums"]["deal_stage"]
           updated_at: string
           value: number | null
@@ -272,10 +274,12 @@ export type Database = {
           created_by: string
           expected_close_date?: string | null
           id?: string
+          lost_reason?: string | null
           name: string
           notes?: string | null
           organization_id: string
           owner_id?: string | null
+          position?: number
           stage?: Database["public"]["Enums"]["deal_stage"]
           updated_at?: string
           value?: number | null
@@ -287,10 +291,12 @@ export type Database = {
           created_by?: string
           expected_close_date?: string | null
           id?: string
+          lost_reason?: string | null
           name?: string
           notes?: string | null
           organization_id?: string
           owner_id?: string | null
+          position?: number
           stage?: Database["public"]["Enums"]["deal_stage"]
           updated_at?: string
           value?: number | null

@@ -5,10 +5,12 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePermissions } from "@/lib/hooks/use-permissions";
+import { isStale } from "@/lib/format";
 import { DealsKanban } from "./deals-kanban";
 import { DealsList } from "./deals-list";
 import { DealFilters, type DealFilterState } from "./deal-filters";
 import { CreateDealDialog } from "./create-deal-dialog";
+import { DealDetailDrawer } from "./deal-detail-drawer";
 import type { DealWithRelations } from "@/lib/types/database";
 
 interface SelectOption {
@@ -16,11 +18,24 @@ interface SelectOption {
   name: string;
 }
 
+interface ContactOption {
+  id: string;
+  name: string;
+  email?: string | null;
+}
+
+interface MemberOption {
+  id: string;
+  name: string;
+  avatar_url?: string | null;
+}
+
 interface DealsViewProps {
   deals: DealWithRelations[];
-  contacts: SelectOption[];
+  contacts: ContactOption[];
   companies: SelectOption[];
-  members: SelectOption[];
+  members: MemberOption[];
+  currentUserId: string;
 }
 
 const EMPTY_FILTERS: DealFilterState = {
@@ -31,6 +46,7 @@ const EMPTY_FILTERS: DealFilterState = {
   closeDateTo: "",
   valueMin: "",
   valueMax: "",
+  quickFilters: [],
 };
 
 export function DealsView({
@@ -38,13 +54,36 @@ export function DealsView({
   contacts,
   companies,
   members,
+  currentUserId,
 }: DealsViewProps) {
   const { can } = usePermissions();
   const [createOpen, setCreateOpen] = useState(false);
   const [filters, setFilters] = useState<DealFilterState>(EMPTY_FILTERS);
+  const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     return deals.filter((deal) => {
+      // Quick filters (additive AND logic)
+      if (filters.quickFilters.includes("my_deals")) {
+        if (deal.owner_id !== currentUserId) return false;
+      }
+      if (filters.quickFilters.includes("closing_this_month")) {
+        if (!deal.expected_close_date) return false;
+        const now = new Date();
+        const closeDate = new Date(deal.expected_close_date + "T00:00:00");
+        if (
+          closeDate.getMonth() !== now.getMonth() ||
+          closeDate.getFullYear() !== now.getFullYear()
+        )
+          return false;
+      }
+      if (filters.quickFilters.includes("stale")) {
+        if (!isStale(deal.last_activity_at, 14)) return false;
+      }
+      if (filters.quickFilters.includes("high_value")) {
+        if (!deal.value || Number(deal.value) < 10000) return false;
+      }
+
       // Search
       if (filters.search) {
         const q = filters.search.toLowerCase();
@@ -81,7 +120,7 @@ export function DealsView({
 
       return true;
     });
-  }, [deals, filters]);
+  }, [deals, filters, currentUserId]);
 
   const totalValue = filtered.reduce(
     (sum, d) => sum + (d.value ? Number(d.value) : 0),
@@ -123,10 +162,16 @@ export function DealsView({
             <TabsTrigger value="list">List</TabsTrigger>
           </TabsList>
           <TabsContent value="kanban" className="mt-4">
-            <DealsKanban deals={filtered} />
+            <DealsKanban
+              deals={filtered}
+              onDealSelect={setSelectedDealId}
+            />
           </TabsContent>
           <TabsContent value="list" className="mt-4">
-            <DealsList deals={filtered} />
+            <DealsList
+              deals={filtered}
+              onDealSelect={setSelectedDealId}
+            />
           </TabsContent>
         </Tabs>
       </div>
@@ -137,6 +182,11 @@ export function DealsView({
         contacts={contacts}
         companies={companies}
         members={members}
+      />
+
+      <DealDetailDrawer
+        dealId={selectedDealId}
+        onClose={() => setSelectedDealId(null)}
       />
     </>
   );
