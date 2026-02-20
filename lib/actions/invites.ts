@@ -29,7 +29,12 @@ async function getAppOrigin() {
   return `${protocol}://${host}`;
 }
 
-export async function inviteUser(email: string, role: MemberRole) {
+export async function inviteUser(
+  email: string,
+  role: MemberRole,
+  firstName?: string,
+  lastName?: string,
+) {
   const supabase = await createClient();
 
   const result = await tryAuthorize("member:invite");
@@ -44,10 +49,15 @@ export async function inviteUser(email: string, role: MemberRole) {
     return { success: false, error: "Only owners can assign the owner role" };
   }
 
+  const fullName = [firstName, lastName]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(" ") || null;
+
   // Check if user already exists
   const { data: existingProfile } = await adminSupabase
     .from("profiles")
-    .select("id")
+    .select("id, full_name")
     .eq("email", email)
     .maybeSingle();
 
@@ -77,6 +87,14 @@ export async function inviteUser(email: string, role: MemberRole) {
       return { success: false, error: insertError.message };
     }
 
+    // Backfill full_name if the existing user doesn't have one yet
+    if (fullName && !existingProfile.full_name) {
+      await adminSupabase
+        .from("profiles")
+        .update({ full_name: fullName })
+        .eq("id", existingProfile.id);
+    }
+
     revalidatePath("/settings/team");
     return { success: true };
   }
@@ -90,6 +108,7 @@ export async function inviteUser(email: string, role: MemberRole) {
       data: {
         invited_to_org: orgId,
         invited_role: role,
+        ...(fullName ? { full_name: fullName } : {}),
       },
     }
   );
