@@ -374,7 +374,13 @@ function DrawerContent({ dealId }: { dealId: string }) {
                   label="Contact"
                   value={deal.contact_name}
                   placeholder="Add contact..."
-                  options={fieldOptions?.contacts ?? []}
+                  options={
+                    deal.company_id
+                      ? (fieldOptions?.contacts ?? []).filter(
+                          (c) => c.company_id === deal.company_id
+                        )
+                      : fieldOptions?.contacts ?? []
+                  }
                   loading={optionsLoading}
                   onOpen={loadOptions}
                   onSelect={(opt) =>

@@ -20,6 +20,7 @@ import type { DealWithRelations } from "@/lib/types/database";
 interface SelectOption {
   id: string;
   name: string;
+  company_id?: string | null;
 }
 
 interface EditDealDialogProps {

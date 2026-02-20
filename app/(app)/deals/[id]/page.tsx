@@ -52,7 +52,7 @@ export default async function DealPage({ params }: DealPageProps) {
       .order("created_at", { ascending: true }),
     supabase
       .from("contacts")
-      .select("id, first_name, last_name")
+      .select("id, first_name, last_name, company_id")
       .eq("organization_id", orgId)
       .order("last_name", { ascending: true }),
     supabase
@@ -120,6 +120,7 @@ export default async function DealPage({ params }: DealPageProps) {
           contacts?.map((c) => ({
             id: c.id,
             name: `${c.first_name} ${c.last_name}`,
+            company_id: c.company_id,
           })) ?? []
         }
         companies={companies ?? []}
