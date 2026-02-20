@@ -60,6 +60,10 @@ export interface DealWithRelations extends Deal {
   contact_name: string | null;
   company_name: string | null;
   owner_name: string | null;
+  owner_avatar_url: string | null;
+  last_activity_at: string | null;
+  next_task_title: string | null;
+  next_task_due_date: string | null;
 }
 
 export interface DealFormData {
@@ -71,6 +75,7 @@ export interface DealFormData {
   contact_id: string;
   company_id: string;
   notes: string;
+  lost_reason: string;
 }
 
 export interface DealActivityWithAuthor extends DealActivity {

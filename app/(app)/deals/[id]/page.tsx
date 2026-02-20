@@ -33,7 +33,7 @@ export default async function DealPage({ params }: DealPageProps) {
     supabase
       .from("deals")
       .select(
-        "*, contacts(first_name, last_name), companies(name), owner:profiles!deals_owner_id_fkey(full_name)"
+        "*, contacts(first_name, last_name), companies(name), owner:profiles!deals_owner_id_fkey(full_name, avatar_url)"
       )
       .eq("id", id)
       .eq("organization_id", orgId)
@@ -73,7 +73,10 @@ export default async function DealPage({ params }: DealPageProps) {
     last_name: string;
   } | null;
   const company = deal.companies as unknown as { name: string } | null;
-  const owner = deal.owner as unknown as { full_name: string | null } | null;
+  const owner = deal.owner as unknown as {
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
 
   const enrichedDeal: DealWithRelations = {
     ...deal,
@@ -82,6 +85,11 @@ export default async function DealPage({ params }: DealPageProps) {
       : null,
     company_name: company?.name ?? null,
     owner_name: owner?.full_name ?? null,
+    owner_avatar_url: owner?.avatar_url ?? null,
+    last_activity_at:
+      activities && activities.length > 0 ? activities[0].created_at : null,
+    next_task_title: null,
+    next_task_due_date: null,
   };
 
   const enrichedActivities: DealActivityWithAuthor[] = (activities ?? []).map(
