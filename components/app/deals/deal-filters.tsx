@@ -123,7 +123,7 @@ export function DealFilters({ filters, onChange, members }: DealFiltersProps) {
           ))}
           <Badge
             variant={filters.stages.includes("won") ? "default" : "outline"}
-            className="cursor-pointer select-none bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400"
+            className="cursor-pointer select-none"
             onClick={() => toggleStage("won")}
           >
             Won
