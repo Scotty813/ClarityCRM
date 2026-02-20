@@ -13,6 +13,7 @@ import {
   Users,
   Loader2,
 } from "lucide-react";
+import { InlineEditField } from "./inline-edit-field";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -34,19 +35,27 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { DEAL_STAGES, STAGE_LABELS } from "@/lib/deals";
-import { formatCurrency } from "@/lib/format";
-import { getDealDetail } from "@/lib/actions/deal-detail";
-import { updateDealStage } from "@/lib/actions/deals";
+import { getDealDetail, getDealFieldOptions } from "@/lib/actions/deal-detail";
+import {
+  updateDealStage,
+  updateDealField,
+  updateDealContact,
+} from "@/lib/actions/deals";
 import { cn } from "@/lib/utils";
 import { DealActivityComposer } from "./deal-activity-composer";
 import { DealTimeline } from "./deal-timeline";
 import { DealTasks } from "./deal-tasks";
 import { CloseDealDialog } from "./close-deal-dialog";
+import { EntityPicker } from "./entity-picker";
 import type {
   DealWithRelations,
   DealActivityWithAuthor,
   DealTask,
   DealStage,
+  SelectOption,
+  DealEntityField,
+  ContactSelectOption,
+  DealUpdatableField,
 } from "@/lib/types/database";
 
 interface DealDetailDrawerProps {
@@ -91,23 +100,126 @@ function DrawerContent({ dealId }: { dealId: string }) {
     "won"
   );
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
+  const [fieldOptions, setFieldOptions] = useState<{
+    contacts: ContactSelectOption[];
+    members: SelectOption[];
+  } | null>(null);
+  const [optionsLoading, setOptionsLoading] = useState(false);
 
-  const fetchDetail = useCallback(async () => {
-    setLoading(true);
+  const fetchDetail = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        const result = await getDealDetail(dealId);
+        if (result.success) {
+          setDeal(result.deal);
+          setActivities(result.activities);
+          setTasks(result.tasks);
+          setContactEmail(result.contactEmail);
+        } else {
+          toast.error(result.error);
+        }
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [dealId]
+  );
+
+  const handleMutationSuccess = useCallback(() => {
+    fetchDetail(true);
+  }, [fetchDetail]);
+
+  const loadOptions = useCallback(async () => {
+    if (fieldOptions || optionsLoading) return;
+    setOptionsLoading(true);
     try {
-      const result = await getDealDetail(dealId);
+      const result = await getDealFieldOptions();
       if (result.success) {
-        setDeal(result.deal);
-        setActivities(result.activities);
-        setTasks(result.tasks);
-        setContactEmail(result.contactEmail);
-      } else {
-        toast.error(result.error);
+        setFieldOptions({
+          contacts: result.contacts,
+          members: result.members,
+        });
       }
     } finally {
-      setLoading(false);
+      setOptionsLoading(false);
     }
-  }, [dealId]);
+  }, [fieldOptions, optionsLoading]);
+
+  const handleFieldUpdate = useCallback(
+    async (
+      field: DealEntityField,
+      option: SelectOption | null,
+      nameKey: "owner_name" | "contact_name" | "company_name"
+    ) => {
+      if (!deal) return;
+      const prev = { ...deal };
+      setDeal({
+        ...deal,
+        [field]: option?.id ?? null,
+        [nameKey]: option?.name ?? null,
+      });
+      const result = await updateDealField(deal.id, field, option?.id ?? null);
+      if (!result.success) {
+        setDeal(prev);
+        toast.error(result.error ?? "Failed to update field");
+      } else {
+        fetchDetail(true);
+      }
+    },
+    [deal, fetchDetail]
+  );
+
+  const handleScalarUpdate = useCallback(
+    async (field: DealUpdatableField, rawValue: string | null) => {
+      if (!deal) return;
+      const prev = { ...deal };
+      // Optimistic update
+      if (field === "value") {
+        setDeal({
+          ...deal,
+          value: rawValue !== null ? parseFloat(rawValue) : null,
+        });
+      } else if (field === "expected_close_date") {
+        setDeal({ ...deal, expected_close_date: rawValue });
+      }
+      const result = await updateDealField(deal.id, field, rawValue);
+      if (!result.success) {
+        setDeal(prev);
+        toast.error(result.error ?? "Failed to update field");
+      } else {
+        fetchDetail(true);
+      }
+    },
+    [deal, fetchDetail]
+  );
+
+  const handleContactUpdate = useCallback(
+    async (option: ContactSelectOption | null) => {
+      if (!deal) return;
+      const prev = { ...deal };
+      // Optimistic update — cascade contact + company
+      setDeal({
+        ...deal,
+        contact_id: option?.id ?? null,
+        contact_name: option?.name ?? null,
+        company_id: option?.company_id ?? null,
+        company_name: option?.company_name ?? null,
+      });
+      const result = await updateDealContact(
+        deal.id,
+        option?.id ?? null,
+        option?.company_id ?? null
+      );
+      if (!result.success) {
+        setDeal(prev);
+        toast.error(result.error ?? "Failed to update contact");
+      } else {
+        fetchDetail(true);
+      }
+    },
+    [deal, fetchDetail]
+  );
 
   useEffect(() => {
     fetchDetail();
@@ -145,31 +257,6 @@ function DrawerContent({ dealId }: { dealId: string }) {
       </>
     );
   }
-
-  const infoFields = [
-    {
-      icon: DollarSign,
-      label: "Value",
-      value:
-        deal.value !== null ? formatCurrency(Number(deal.value)) : null,
-    },
-    {
-      icon: Calendar,
-      label: "Expected Close",
-      value: deal.expected_close_date
-        ? new Date(
-            deal.expected_close_date + "T00:00:00"
-          ).toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })
-        : null,
-    },
-    { icon: Users, label: "Owner", value: deal.owner_name },
-    { icon: User, label: "Contact", value: deal.contact_name },
-    { icon: Building2, label: "Company", value: deal.company_name },
-  ];
 
   return (
     <>
@@ -252,21 +339,65 @@ function DrawerContent({ dealId }: { dealId: string }) {
           <div className="px-6 py-4">
             <TabsContent value="overview" className="mt-0">
               <div className="space-y-4">
-                {infoFields.map(({ icon: Icon, label, value }) => (
-                  <div key={label} className="flex items-center gap-3">
-                    <Icon className="size-4 shrink-0 text-muted-foreground" />
-                    <div className="flex-1">
-                      <p className="text-xs text-muted-foreground">{label}</p>
-                      <p className="text-sm font-medium">
-                        {value ?? (
-                          <span className="text-muted-foreground">
-                            &mdash;
-                          </span>
-                        )}
-                      </p>
-                    </div>
+                <InlineEditField
+                  icon={DollarSign}
+                  label="Value"
+                  value={deal.value}
+                  placeholder="Add deal value"
+                  type="currency"
+                  onSave={(val) => handleScalarUpdate("value", val)}
+                />
+                <InlineEditField
+                  icon={Calendar}
+                  label="Expected Close"
+                  value={deal.expected_close_date}
+                  placeholder="Add close date"
+                  type="date"
+                  onSave={(val) =>
+                    handleScalarUpdate("expected_close_date", val)
+                  }
+                />
+                <EntityPicker
+                  icon={Users}
+                  label="Owner"
+                  value={deal.owner_name}
+                  placeholder="Add owner..."
+                  options={fieldOptions?.members ?? []}
+                  loading={optionsLoading}
+                  onOpen={loadOptions}
+                  onSelect={(opt) =>
+                    handleFieldUpdate("owner_id", opt, "owner_name")
+                  }
+                />
+                <EntityPicker
+                  icon={User}
+                  label="Contact"
+                  value={deal.contact_name}
+                  placeholder="Add contact..."
+                  options={
+                    deal.company_id
+                      ? (fieldOptions?.contacts ?? []).filter(
+                          (c) => c.company_id === deal.company_id
+                        )
+                      : fieldOptions?.contacts ?? []
+                  }
+                  loading={optionsLoading}
+                  onOpen={loadOptions}
+                  onSelect={(opt) =>
+                    handleContactUpdate(opt as ContactSelectOption | null)
+                  }
+                />
+                <div className="flex items-center gap-3">
+                  <Building2 className="size-4 shrink-0 text-muted-foreground" />
+                  <div className="flex-1">
+                    <p className="text-xs text-muted-foreground">Company</p>
+                    <p className="text-sm font-medium">
+                      {deal.company_name ?? (
+                        <span className="text-muted-foreground">&mdash;</span>
+                      )}
+                    </p>
                   </div>
-                ))}
+                </div>
                 {deal.notes && (
                   <>
                     <Separator />
@@ -282,12 +413,19 @@ function DrawerContent({ dealId }: { dealId: string }) {
             </TabsContent>
 
             <TabsContent value="activity" className="mt-0 space-y-6">
-              <DealActivityComposer dealId={deal.id} />
+              <DealActivityComposer
+                dealId={deal.id}
+                onMutationSuccess={handleMutationSuccess}
+              />
               <DealTimeline activities={activities} />
             </TabsContent>
 
             <TabsContent value="tasks" className="mt-0">
-              <DealTasks tasks={tasks} dealId={deal.id} />
+              <DealTasks
+                tasks={tasks}
+                dealId={deal.id}
+                onMutationSuccess={handleMutationSuccess}
+              />
             </TabsContent>
 
             <TabsContent value="contacts" className="mt-0">

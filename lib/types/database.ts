@@ -49,6 +49,27 @@ export interface ContactFormData {
   notes: string;
 }
 
+// Shared option type for combobox pickers
+export interface SelectOption {
+  id: string;
+  name: string;
+}
+
+// Contact option with company info for cascading
+export interface ContactSelectOption extends SelectOption {
+  company_id: string | null;
+  company_name: string | null;
+}
+
+// Entity FK fields on deals
+export type DealEntityField = "owner_id" | "contact_id" | "company_id";
+
+// All updatable deal fields (FKs + scalar fields)
+export type DealUpdatableField =
+  | DealEntityField
+  | "value"
+  | "expected_close_date";
+
 // Deals
 export type Deal = Database["public"]["Tables"]["deals"]["Row"];
 export type DealActivity = Database["public"]["Tables"]["deal_activities"]["Row"];

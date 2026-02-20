@@ -25,7 +25,7 @@ export default async function DealsPage() {
       .order("created_at", { ascending: false }),
     supabase
       .from("contacts")
-      .select("id, first_name, last_name, email")
+      .select("id, first_name, last_name, email, company_id")
       .eq("organization_id", orgId)
       .order("last_name", { ascending: true }),
     supabase
@@ -116,6 +116,7 @@ export default async function DealsPage() {
             id: c.id,
             name: `${c.first_name} ${c.last_name}`,
             email: c.email,
+            company_id: c.company_id,
           })) ?? []
         }
         companies={companies ?? []}

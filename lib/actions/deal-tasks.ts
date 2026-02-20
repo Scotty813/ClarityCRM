@@ -25,6 +25,7 @@ export async function createDealTask(dealId: string, data: DealTaskFormData) {
   if (error) return { success: false, error: error.message };
 
   revalidatePath(`/deals/${dealId}`);
+  revalidatePath("/deals");
   return { success: true };
 }
 
@@ -66,5 +67,6 @@ export async function deleteDealTask(taskId: string, dealId: string) {
   if (error) return { success: false, error: error.message };
 
   revalidatePath(`/deals/${dealId}`);
+  revalidatePath("/deals");
   return { success: true };
 }

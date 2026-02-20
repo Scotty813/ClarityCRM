@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useMemo } from "react";
 import type { UseFormReturn } from "react-hook-form";
+import { useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -23,6 +25,7 @@ import type { DealFormValues } from "@/lib/validations/deal";
 interface SelectOption {
   id: string;
   name: string;
+  company_id?: string | null;
 }
 
 interface DealFormFieldsProps {
@@ -40,6 +43,31 @@ export function DealFormFields({
   members,
   hideOwner,
 }: DealFormFieldsProps) {
+  const selectedCompanyId = useWatch({
+    control: form.control,
+    name: "company_id",
+  });
+
+  const filteredContacts = useMemo(() => {
+    if (!selectedCompanyId) return [];
+    return contacts.filter((c) => c.company_id === selectedCompanyId);
+  }, [contacts, selectedCompanyId]);
+
+  // Clear contact when company changes and selected contact doesn't belong
+  useEffect(() => {
+    const contactId = form.getValues("contact_id");
+    if (!selectedCompanyId) {
+      if (contactId) form.setValue("contact_id", "");
+      return;
+    }
+    if (contactId) {
+      const belongs = contacts.some(
+        (c) => c.id === contactId && c.company_id === selectedCompanyId
+      );
+      if (!belongs) form.setValue("contact_id", "");
+    }
+  }, [selectedCompanyId, contacts, form]);
+
   return (
     <div className="space-y-4">
       <FormField
@@ -158,24 +186,21 @@ export function DealFormFields({
       <div className="grid grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="contact_id"
+          name="company_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact</FormLabel>
+              <FormLabel>Company</FormLabel>
               <Select
-                value={field.value || "none"}
-                onValueChange={(v) =>
-                  field.onChange(v === "none" ? "" : v)
-                }
+                value={field.value || undefined}
+                onValueChange={field.onChange}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Link contact" />
+                    <SelectValue placeholder="Select company" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">No contact</SelectItem>
-                  {contacts.map((c) => (
+                  {companies.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
                     </SelectItem>
@@ -189,28 +214,38 @@ export function DealFormFields({
 
         <FormField
           control={form.control}
-          name="company_id"
+          name="contact_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company</FormLabel>
+              <FormLabel>Contact</FormLabel>
               <Select
-                value={field.value || "none"}
-                onValueChange={(v) =>
-                  field.onChange(v === "none" ? "" : v)
-                }
+                value={field.value || undefined}
+                onValueChange={field.onChange}
+                disabled={!selectedCompanyId}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Link company" />
+                    <SelectValue
+                      placeholder={
+                        !selectedCompanyId
+                          ? "Select company first"
+                          : "Select contact"
+                      }
+                    />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="none">No company</SelectItem>
-                  {companies.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
+                  {filteredContacts.length === 0 ? (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No contacts for this company
+                    </div>
+                  ) : (
+                    filteredContacts.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))
+                  )}
                 </SelectContent>
               </Select>
               <FormMessage />

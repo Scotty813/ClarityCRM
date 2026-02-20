@@ -22,6 +22,7 @@ interface ContactOption {
   id: string;
   name: string;
   email?: string | null;
+  company_id?: string | null;
 }
 
 interface MemberOption {

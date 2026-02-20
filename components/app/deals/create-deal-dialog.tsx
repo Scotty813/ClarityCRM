@@ -19,6 +19,7 @@ import { zodResolverCompat, dealFormSchema, type DealFormValues } from "@/lib/va
 interface SelectOption {
   id: string;
   name: string;
+  company_id?: string | null;
 }
 
 interface CreateDealDialogProps {

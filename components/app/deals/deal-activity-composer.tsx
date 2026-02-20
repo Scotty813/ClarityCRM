@@ -11,6 +11,7 @@ import type { DealActivityType } from "@/lib/types/database";
 
 interface DealActivityComposerProps {
   dealId: string;
+  onMutationSuccess?: () => void;
 }
 
 const ACTIVITY_TABS: { value: DealActivityType; label: string }[] = [
@@ -20,7 +21,10 @@ const ACTIVITY_TABS: { value: DealActivityType; label: string }[] = [
   { value: "meeting", label: "Meeting" },
 ];
 
-export function DealActivityComposer({ dealId }: DealActivityComposerProps) {
+export function DealActivityComposer({
+  dealId,
+  onMutationSuccess,
+}: DealActivityComposerProps) {
   const [content, setContent] = useState("");
   const [type, setType] = useState<DealActivityType>("note");
   const [loading, setLoading] = useState(false);
@@ -38,6 +42,7 @@ export function DealActivityComposer({ dealId }: DealActivityComposerProps) {
       }
       toast.success("Activity logged");
       setContent("");
+      onMutationSuccess?.();
     } catch {
       toast.error("Something went wrong");
     } finally {
