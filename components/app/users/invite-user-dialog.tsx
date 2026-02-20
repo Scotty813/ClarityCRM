@@ -102,7 +102,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First name</FormLabel>
+                    <FormLabel>First name <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Jane" {...field} />
                     </FormControl>
@@ -115,7 +115,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>Last name <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Doe" {...field} />
                     </FormControl>
@@ -130,7 +130,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email address</FormLabel>
+                  <FormLabel>Email address <span className="text-destructive">*</span></FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -148,7 +148,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
               name="role"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Role</FormLabel>
+                  <FormLabel>Role <span className="text-destructive">*</span></FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}

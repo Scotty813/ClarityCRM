@@ -69,7 +69,7 @@ function CloseWonForm({
           name="close_date"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Close date</FormLabel>
+              <FormLabel>Close date <span className="text-destructive">*</span></FormLabel>
               <FormControl>
                 <Input type="date" {...field} />
               </FormControl>
@@ -122,7 +122,7 @@ function CloseLostForm({
           name="lost_reason"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Why was this deal lost?</FormLabel>
+              <FormLabel>Why was this deal lost? <span className="text-destructive">*</span></FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="e.g. Lost to competitor, budget cut..."

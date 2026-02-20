@@ -107,7 +107,7 @@ export function CreateContactDialog({
                 name="first_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First name</FormLabel>
+                    <FormLabel>First name <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="John" {...field} />
                     </FormControl>
@@ -120,7 +120,7 @@ export function CreateContactDialog({
                 name="last_name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last name</FormLabel>
+                    <FormLabel>Last name <span className="text-destructive">*</span></FormLabel>
                     <FormControl>
                       <Input placeholder="Doe" {...field} />
                     </FormControl>
@@ -186,7 +186,7 @@ export function CreateContactDialog({
                 name="company_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company</FormLabel>
+                    <FormLabel>Company <span className="text-destructive">*</span></FormLabel>
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
