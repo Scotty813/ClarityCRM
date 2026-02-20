@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
-    "gen:types": "npx supabase gen types --project-id wfukszafwxekkkfgldur --schema public typescript > lib/types/database.types.ts"
+    "gen:types": "npx supabase gen types typescript --project-id pgbmfikazehiwsacgkrx --schema public > lib/types/database.types.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
@@ -22,8 +22,10 @@
     "radix-ui": "^1.4.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-hook-form": "^7.71.1",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
