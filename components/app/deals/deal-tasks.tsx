@@ -1,50 +1,63 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import {
   createDealTask,
   toggleDealTask,
   deleteDealTask,
 } from "@/lib/actions/deal-tasks";
+import { dealTaskSchema, type DealTaskFormValues } from "@/lib/validations/deal";
+import { zodResolverCompat } from "@/lib/validations/deal";
 import { cn } from "@/lib/utils";
 import type { DealTask } from "@/lib/types/database";
+
+function getTodayString() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
 
 interface DealTasksProps {
   tasks: DealTask[];
   dealId: string;
+  onMutationSuccess?: () => void;
 }
 
-export function DealTasks({ tasks, dealId }: DealTasksProps) {
-  const [title, setTitle] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [adding, setAdding] = useState(false);
+export function DealTasks({ tasks, dealId, onMutationSuccess }: DealTasksProps) {
+  const form = useForm<DealTaskFormValues>({
+    resolver: zodResolverCompat(dealTaskSchema),
+    defaultValues: {
+      title: "",
+      due_date: getTodayString(),
+    },
+  });
 
-  async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title.trim()) return;
-
-    setAdding(true);
+  async function onSubmit(values: DealTaskFormValues) {
     try {
       const result = await createDealTask(dealId, {
-        title: title.trim(),
-        due_date: dueDate,
+        title: values.title.trim(),
+        due_date: values.due_date,
       });
       if (!result.success) {
         toast.error(result.error);
         return;
       }
-      setTitle("");
-      setDueDate("");
+      form.reset({ title: "", due_date: getTodayString() });
+      onMutationSuccess?.();
     } catch {
       toast.error("Something went wrong");
-    } finally {
-      setAdding(false);
     }
   }
 
@@ -52,6 +65,8 @@ export function DealTasks({ tasks, dealId }: DealTasksProps) {
     const result = await toggleDealTask(taskId, completed);
     if (!result.success) {
       toast.error(result.error);
+    } else {
+      onMutationSuccess?.();
     }
   }
 
@@ -59,6 +74,8 @@ export function DealTasks({ tasks, dealId }: DealTasksProps) {
     const result = await deleteDealTask(taskId, dealId);
     if (!result.success) {
       toast.error(result.error);
+    } else {
+      onMutationSuccess?.();
     }
   }
 
@@ -88,7 +105,7 @@ export function DealTasks({ tasks, dealId }: DealTasksProps) {
                 handleToggle(task.id, checked === true)
               }
             />
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <p
                 className={cn(
                   "text-sm",
@@ -120,24 +137,50 @@ export function DealTasks({ tasks, dealId }: DealTasksProps) {
           </div>
         ))}
 
-        <form onSubmit={handleAdd} className="flex items-center gap-2">
-          <Input
-            placeholder="Add a task..."
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="flex-1"
-          />
-          <Input
-            type="date"
-            value={dueDate}
-            onChange={(e) => setDueDate(e.target.value)}
-            className="w-[140px]"
-          />
-          <Button type="submit" size="sm" disabled={adding || !title.trim()}>
-            <Plus className="mr-1 size-3.5" />
-            Add
-          </Button>
-        </form>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex items-start gap-2"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem className="flex-1">
+                  <FormControl>
+                    <Input placeholder="Add a task..." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="due_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      className="w-[140px]"
+                      min={getTodayString()}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <Button
+              type="submit"
+              size="sm"
+              disabled={form.formState.isSubmitting}
+            >
+              <Plus className="mr-1 size-3.5" />
+              Add
+            </Button>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

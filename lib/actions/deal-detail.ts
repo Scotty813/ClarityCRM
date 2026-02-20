@@ -6,6 +6,8 @@ import type {
   DealWithRelations,
   DealActivityWithAuthor,
   DealTask,
+  SelectOption,
+  ContactSelectOption,
 } from "@/lib/types/database";
 
 export async function getDealDetail(dealId: string) {
@@ -92,5 +94,51 @@ export async function getDealDetail(dealId: string) {
     activities: enrichedActivities,
     tasks: (tasks ?? []) as DealTask[],
     contactEmail: contact?.email ?? null,
+  };
+}
+
+export async function getDealFieldOptions() {
+  const result = await tryAuthorize("deal:edit");
+  if (!result.authorized) {
+    return { success: false as const, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const [{ data: contacts }, { data: members }] = await Promise.all([
+    supabase
+      .from("contacts")
+      .select("id, first_name, last_name, company_id, companies(name)")
+      .eq("organization_id", orgId)
+      .order("last_name", { ascending: true }),
+    supabase
+      .from("organization_users")
+      .select("user_id, profiles(full_name)")
+      .eq("organization_id", orgId),
+  ]);
+
+  const contactOptions: ContactSelectOption[] = (contacts ?? []).map((c) => {
+    const company = c.companies as unknown as { name: string } | null;
+    return {
+      id: c.id,
+      name: `${c.first_name} ${c.last_name}`,
+      company_id: c.company_id,
+      company_name: company?.name ?? null,
+    };
+  });
+
+  const memberOptions: SelectOption[] = (members ?? []).map((m) => {
+    const profile = m.profiles as unknown as { full_name: string | null };
+    return {
+      id: m.user_id,
+      name: profile?.full_name ?? "Unknown",
+    };
+  });
+
+  return {
+    success: true as const,
+    contacts: contactOptions,
+    members: memberOptions,
   };
 }

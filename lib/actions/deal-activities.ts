@@ -29,5 +29,6 @@ export async function createDealActivity(
   if (error) return { success: false, error: error.message };
 
   revalidatePath(`/deals/${dealId}`);
+  revalidatePath("/deals");
   return { success: true };
 }

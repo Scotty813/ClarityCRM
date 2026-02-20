@@ -36,3 +36,17 @@ export const closeDealLostSchema = z.object({
 });
 
 export type CloseDealLostValues = z.infer<typeof closeDealLostSchema>;
+
+export const dealTaskSchema = z.object({
+  title: z.string().min(1, "Task title is required").max(200),
+  due_date: z.string().min(1, "Due date is required").refine(
+    (val) => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      return new Date(val + "T00:00:00") >= today;
+    },
+    { message: "Due date cannot be in the past" }
+  ),
+});
+
+export type DealTaskFormValues = z.infer<typeof dealTaskSchema>;

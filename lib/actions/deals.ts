@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { tryAuthorize } from "@/lib/supabase/authorize";
-import type { DealFormData, DealStage } from "@/lib/types/database";
+import type {
+  DealFormData,
+  DealStage,
+  DealUpdatableField,
+} from "@/lib/types/database";
 
 export async function createDeal(data: DealFormData) {
   const result = await tryAuthorize("deal:create");
@@ -189,6 +193,63 @@ export async function moveDeal(
   if (stageChanged) {
     revalidatePath(`/deals/${dealId}`);
   }
+  return { success: true };
+}
+
+export async function updateDealField(
+  dealId: string,
+  field: DealUpdatableField,
+  value: string | number | null
+) {
+  const result = await tryAuthorize("deal:edit");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  let dbValue: string | number | null = value;
+  if (field === "value") {
+    dbValue = value !== null && value !== "" ? parseFloat(String(value)) : null;
+  }
+
+  const { error } = await supabase
+    .from("deals")
+    .update({ [field]: dbValue })
+    .eq("id", dealId)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/deals");
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
+
+export async function updateDealContact(
+  dealId: string,
+  contactId: string | null,
+  companyId: string | null
+) {
+  const result = await tryAuthorize("deal:edit");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("deals")
+    .update({ contact_id: contactId, company_id: companyId })
+    .eq("id", dealId)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/deals");
+  revalidatePath(`/deals/${dealId}`);
   return { success: true };
 }
 
