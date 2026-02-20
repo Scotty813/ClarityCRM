@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -11,7 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -20,9 +19,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { inviteUser } from "@/lib/actions/invites";
 import { usePermissions } from "@/lib/hooks/use-permissions";
+import { zodResolverCompat } from "@/lib/validations/resolver";
+import {
+  inviteUserSchema,
+  type InviteUserFormValues,
+} from "@/lib/validations/invite";
 import type { MemberRole } from "@/lib/types/database";
+
+const DEFAULT_VALUES: InviteUserFormValues = {
+  first_name: "",
+  last_name: "",
+  email: "",
+  role: "member",
+};
 
 interface InviteUserDialogProps {
   open: boolean;
@@ -31,19 +50,20 @@ interface InviteUserDialogProps {
 
 export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
   const { can } = usePermissions();
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<MemberRole>("member");
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const form = useForm<InviteUserFormValues>({
+    resolver: zodResolverCompat(inviteUserSchema),
+    defaultValues: DEFAULT_VALUES,
+  });
 
-    const trimmed = email.trim().toLowerCase();
-    if (!trimmed) return;
-
-    setLoading(true);
+  async function onSubmit(values: InviteUserFormValues) {
     try {
-      const result = await inviteUser(trimmed, role);
+      const result = await inviteUser(
+        values.email.trim().toLowerCase(),
+        values.role as MemberRole,
+        values.first_name.trim(),
+        values.last_name.trim(),
+      );
 
       if (!result.success) {
         toast.error(result.error);
@@ -51,19 +71,22 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
       }
 
       toast.success("Invite sent successfully");
-      setEmail("");
-      setRole("member");
+      form.reset(DEFAULT_VALUES);
       onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) form.reset(DEFAULT_VALUES);
+        onOpenChange(v);
+      }}
+    >
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Invite User</DialogTitle>
           <DialogDescription>
@@ -71,48 +94,97 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="user@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Select value={role} onValueChange={(v) => setRole(v as MemberRole)}>
-              <SelectTrigger id="role">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
-                {can("member:edit-role") && (
-                  <SelectItem value="owner">Owner</SelectItem>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="first_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First name <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="Jane" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
-              </SelectContent>
-            </Select>
-          </div>
+              />
+              <FormField
+                control={form.control}
+                name="last_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last name <span className="text-destructive">*</span></FormLabel>
+                    <FormControl>
+                      <Input placeholder="Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Sending..." : "Send Invite"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address <span className="text-destructive">*</span></FormLabel>
+                  <FormControl>
+                    <Input
+                      type="email"
+                      placeholder="user@example.com"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role <span className="text-destructive">*</span></FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="member">Member</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      {can("member:edit-role") && (
+                        <SelectItem value="owner">Owner</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting ? "Sending..." : "Send Invite"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

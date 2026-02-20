@@ -32,8 +32,10 @@ describe("SignupForm", () => {
     vi.clearAllMocks();
   });
 
-  it("renders email and password inputs", () => {
+  it("renders name, email, and password inputs", () => {
     renderWithProvider();
+    expect(screen.getByLabelText("First name")).toBeInTheDocument();
+    expect(screen.getByLabelText("Last name")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(screen.getByLabelText("Password")).toBeInTheDocument();
   });
@@ -64,6 +66,46 @@ describe("SignupForm", () => {
 
     expect(await screen.findByText("Check your email")).toBeInTheDocument();
     expect(screen.getByText("new@example.com")).toBeInTheDocument();
+  });
+
+  it("passes full_name metadata when names are provided", async () => {
+    mockSignUp.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+
+    renderWithProvider();
+    await user.type(screen.getByLabelText("First name"), "Jane");
+    await user.type(screen.getByLabelText("Last name"), "Smith");
+    await user.type(screen.getByLabelText("Email"), "jane@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: "jane@example.com",
+        password: "password123",
+        options: expect.objectContaining({
+          data: { full_name: "Jane Smith" },
+        }),
+      }),
+    );
+  });
+
+  it("omits data when names are empty", async () => {
+    mockSignUp.mockResolvedValue({ error: null });
+    const user = userEvent.setup();
+
+    renderWithProvider();
+    await user.type(screen.getByLabelText("Email"), "no-name@example.com");
+    await user.type(screen.getByLabelText("Password"), "password123");
+    await user.click(screen.getByRole("button", { name: "Create account" }));
+
+    expect(mockSignUp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: expect.objectContaining({
+          data: undefined,
+        }),
+      }),
+    );
   });
 
   it("displays error message on failed signup", async () => {

@@ -75,7 +75,7 @@ export function DealFormFields({
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Deal name</FormLabel>
+            <FormLabel>Deal name <span className="text-destructive">*</span></FormLabel>
             <FormControl>
               <Input
                 placeholder="Enterprise License — Acme Corp"
@@ -113,7 +113,7 @@ export function DealFormFields({
           name="stage"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Stage</FormLabel>
+              <FormLabel>Stage <span className="text-destructive">*</span></FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>
@@ -189,7 +189,7 @@ export function DealFormFields({
           name="company_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company</FormLabel>
+              <FormLabel>Company <span className="text-destructive">*</span></FormLabel>
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}
@@ -217,7 +217,7 @@ export function DealFormFields({
           name="contact_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact</FormLabel>
+              <FormLabel>Contact <span className="text-destructive">*</span></FormLabel>
               <Select
                 value={field.value || undefined}
                 onValueChange={field.onChange}

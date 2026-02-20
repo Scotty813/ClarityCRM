@@ -78,7 +78,7 @@ export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogP
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="company-name">Company name</Label>
+            <Label htmlFor="company-name">Company name <span className="text-destructive">*</span></Label>
             <Input
               id="company-name"
               placeholder="Acme Inc."
