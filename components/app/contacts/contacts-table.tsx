@@ -42,8 +42,6 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<ContactWithCompany | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [editingContact, setEditingContact] = useState<ContactWithCompany | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
 
   const query = search.toLowerCase();
   const filtered = contacts.filter(
@@ -176,8 +174,8 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setEditingContact(contact);
-                                setEditOpen(true);
+                                setSelectedContact(contact);
+                                setDetailOpen(true);
                               }}
                             >
                               <Pencil className="mr-2 size-4" />
@@ -215,14 +213,6 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
         onOpenChange={setDetailOpen}
         contact={selectedContact}
         companies={companies}
-      />
-
-      <ContactDetailDialog
-        open={editOpen}
-        onOpenChange={setEditOpen}
-        contact={editingContact}
-        companies={companies}
-        defaultEditing
       />
     </>
   );
