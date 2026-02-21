@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -12,7 +13,6 @@ import {
 } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,21 +23,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { getInitials } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
 import { updateContact, deleteContact } from "@/lib/actions/contacts";
-import type { ContactWithCompany, ContactFormData } from "@/lib/types/database";
-
-function contactToForm(contact: ContactWithCompany): ContactFormData {
-  return {
-    first_name: contact.first_name,
-    last_name: contact.last_name,
-    email: contact.email ?? "",
-    phone: contact.phone ?? "",
-    job_title: contact.job_title ?? "",
-    company_id: contact.company_id ?? "",
-    notes: contact.notes ?? "",
-  };
-}
+import { zodResolverCompat } from "@/lib/validations/resolver";
+import {
+  editContactFormSchema,
+  type EditContactFormValues,
+} from "@/lib/validations/contact";
+import type { ContactWithCompany } from "@/lib/types/database";
 
 interface CompanyOption {
   id: string;
@@ -49,7 +51,6 @@ interface ContactDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   contact: ContactWithCompany | null;
   companies: CompanyOption[];
-  defaultEditing?: boolean;
 }
 
 export function ContactDetailDialog({
@@ -57,37 +58,43 @@ export function ContactDetailDialog({
   onOpenChange,
   contact,
   companies,
-  defaultEditing = false,
 }: ContactDetailDialogProps) {
   const { can } = usePermissions();
-  const [editing, setEditing] = useState(defaultEditing);
-  const [form, setForm] = useState<ContactFormData>(
-    contact ? contactToForm(contact) : contactToForm({} as ContactWithCompany)
-  );
-  const [loading, setLoading] = useState(false);
+  const canEdit = can("contact:edit");
+  const canDelete = can("contact:delete");
+
+  const form = useForm<EditContactFormValues>({
+    resolver: zodResolverCompat(editContactFormSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      job_title: "",
+      company_id: "",
+      notes: "",
+    },
+  });
 
   useEffect(() => {
     if (contact) {
-      setForm(contactToForm(contact));
-      setEditing(defaultEditing);
+      form.reset({
+        first_name: contact.first_name,
+        last_name: contact.last_name,
+        email: contact.email ?? "",
+        phone: contact.phone ?? "",
+        job_title: contact.job_title ?? "",
+        company_id: contact.company_id ?? "",
+        notes: contact.notes ?? "",
+      });
     }
-  }, [contact, defaultEditing]);
+  }, [contact, form]);
 
-  function update(field: keyof ContactFormData, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
-
-  function getInitials(firstName: string, lastName: string) {
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
-  }
-
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault();
+  async function onSubmit(values: EditContactFormValues) {
     if (!contact) return;
 
-    setLoading(true);
     try {
-      const result = await updateContact(contact.id, form);
+      const result = await updateContact(contact.id, values);
 
       if (!result.success) {
         toast.error(result.error);
@@ -98,8 +105,6 @@ export function ContactDetailDialog({
       onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
   }
 
@@ -107,7 +112,6 @@ export function ContactDetailDialog({
     if (!contact) return;
     if (!confirm(`Delete "${contact.first_name} ${contact.last_name}"? This cannot be undone.`)) return;
 
-    setLoading(true);
     try {
       const result = await deleteContact(contact.id);
 
@@ -120,149 +124,190 @@ export function ContactDetailDialog({
       onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
   }
+
+  const fullName = contact
+    ? `${contact.first_name} ${contact.last_name}`
+    : "";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         {contact && (
           <>
-            {editing ? (
-              <form onSubmit={handleSave} className="space-y-4">
-                <DialogHeader>
-                  <DialogTitle>Edit Contact</DialogTitle>
-                  <DialogDescription>
-                    Update contact details.
+            <DialogHeader className="flex-row items-center gap-4 space-y-0">
+              <Avatar size="lg">
+                <AvatarFallback>
+                  {getInitials(fullName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0 flex-1">
+                <DialogTitle className="truncate">{fullName}</DialogTitle>
+                {contact.job_title && (
+                  <DialogDescription className="truncate">
+                    {contact.job_title}
+                    {contact.company_name ? ` at ${contact.company_name}` : ""}
                   </DialogDescription>
-                </DialogHeader>
+                )}
+                {!contact.job_title && contact.company_name && (
+                  <DialogDescription className="truncate">
+                    {contact.company_name}
+                  </DialogDescription>
+                )}
+              </div>
+            </DialogHeader>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-first">First name</Label>
-                    <Input
-                      id="edit-first"
-                      value={form.first_name}
-                      onChange={(e) => update("first_name", e.target.value)}
-                      required
+            {canEdit ? (
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="first_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>First name <span className="text-destructive">*</span></FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="last_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Last name <span className="text-destructive">*</span></FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-last">Last name</Label>
-                    <Input
-                      id="edit-last"
-                      value={form.last_name}
-                      onChange={(e) => update("last_name", e.target.value)}
-                      required
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-email">Email</Label>
-                    <Input
-                      id="edit-email"
-                      type="email"
-                      value={form.email}
-                      onChange={(e) => update("email", e.target.value)}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input type="email" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Phone</FormLabel>
+                          <FormControl>
+                            <Input type="tel" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-phone">Phone</Label>
-                    <Input
-                      id="edit-phone"
-                      type="tel"
-                      value={form.phone}
-                      onChange={(e) => update("phone", e.target.value)}
-                    />
-                  </div>
-                </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-title">Job title</Label>
-                    <Input
-                      id="edit-title"
-                      value={form.job_title}
-                      onChange={(e) => update("job_title", e.target.value)}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="job_title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Job title</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="company_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Company</FormLabel>
+                          <Select
+                            value={field.value || "none"}
+                            onValueChange={(v) => field.onChange(v === "none" ? "" : v)}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="none">No company</SelectItem>
+                              {companies.map((c) => (
+                                <SelectItem key={c.id} value={c.id}>
+                                  {c.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit-company">Company</Label>
-                    <Select
-                      value={form.company_id || "none"}
-                      onValueChange={(v) => update("company_id", v === "none" ? "" : v)}
-                    >
-                      <SelectTrigger id="edit-company">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No company</SelectItem>
-                        {companies.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="edit-notes">Notes</Label>
-                  <Textarea
-                    id="edit-notes"
-                    value={form.notes}
-                    onChange={(e) => update("notes", e.target.value)}
-                    rows={3}
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Notes</FormLabel>
+                        <FormControl>
+                          <Textarea rows={3} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </div>
 
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setForm(contactToForm(contact));
-                      setEditing(false);
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={loading}>
-                    {loading ? "Saving..." : "Save Changes"}
-                  </Button>
-                </DialogFooter>
-              </form>
+                  <div className="flex items-center justify-between pt-2">
+                    {canDelete && (
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleDelete}
+                      >
+                        Delete
+                      </Button>
+                    )}
+                    <div className="ml-auto flex gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => onOpenChange(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        type="submit"
+                        disabled={!form.formState.isDirty || form.formState.isSubmitting}
+                      >
+                        {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
+                  </div>
+                </form>
+              </Form>
             ) : (
               <>
-                <DialogHeader className="flex-row items-center gap-4 space-y-0">
-                  <Avatar size="lg">
-                    <AvatarFallback>
-                      {getInitials(contact.first_name, contact.last_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <DialogTitle className="truncate">
-                      {contact.first_name} {contact.last_name}
-                    </DialogTitle>
-                    {contact.job_title && (
-                      <DialogDescription className="truncate">
-                        {contact.job_title}
-                        {contact.company_name ? ` at ${contact.company_name}` : ""}
-                      </DialogDescription>
-                    )}
-                    {!contact.job_title && contact.company_name && (
-                      <DialogDescription className="truncate">
-                        {contact.company_name}
-                      </DialogDescription>
-                    )}
-                  </div>
-                </DialogHeader>
-
                 <div className="space-y-3 pt-2">
                   {contact.email && (
                     <div className="flex items-center justify-between">
@@ -307,30 +352,6 @@ export function ContactDetailDialog({
                 </div>
 
                 <Separator />
-
-                <div className="flex gap-2">
-                  {can("contact:edit") && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex-1"
-                      onClick={() => setEditing(true)}
-                    >
-                      Edit
-                    </Button>
-                  )}
-                  {can("contact:delete") && (
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="flex-1"
-                      disabled={loading}
-                      onClick={handleDelete}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
               </>
             )}
           </>
