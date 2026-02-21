@@ -417,8 +417,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
           onboarding_completed: boolean
           onboarding_step: number
           selected_path: string | null
@@ -429,8 +431,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
           onboarding_completed?: boolean
           onboarding_step?: number
           selected_path?: string | null
@@ -441,8 +445,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
           onboarding_completed?: boolean
           onboarding_step?: number
           selected_path?: string | null

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut, Monitor, Moon, Sun, Users } from "lucide-react";
+import { Menu, LogOut, Monitor, Moon, Sun, User, Users } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import {
@@ -73,10 +73,24 @@ export function AppMobileNav({ email, navLinks, onSignOut }: AppMobileNavProps) 
           <div className="my-2 border-t border-border" />
           <SheetClose asChild>
             <Link
+              href="/settings/profile"
+              className={cn(
+                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                pathname === "/settings/profile"
+                  ? "bg-accent text-accent-foreground"
+                  : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+              )}
+            >
+              <User className="size-4" />
+              Profile
+            </Link>
+          </SheetClose>
+          <SheetClose asChild>
+            <Link
               href="/settings/team"
               className={cn(
                 "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname.startsWith("/settings")
+                pathname === "/settings/team"
                   ? "bg-accent text-accent-foreground"
                   : "text-muted-foreground hover:bg-secondary hover:text-foreground"
               )}

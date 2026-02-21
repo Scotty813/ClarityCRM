@@ -14,7 +14,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Building2, Check, LogOut, Monitor, Moon, Settings, Sun, Users } from "lucide-react";
+import { Building2, Check, LogOut, Monitor, Moon, Settings, Sun, User, Users } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
@@ -101,6 +101,12 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/profile">
+                    <User className="size-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/settings/team">
                     <Users className="size-4" />
