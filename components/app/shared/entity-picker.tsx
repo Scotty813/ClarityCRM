@@ -25,9 +25,9 @@ export interface EntityPickerProps {
   value: string | null;
   placeholder: string;
   options: SelectOption[];
-  loading: boolean;
+  loading?: boolean;
   onSelect: (option: SelectOption | null) => void;
-  onOpen: () => void;
+  onOpen?: () => void;
 }
 
 export function EntityPicker({
@@ -36,7 +36,7 @@ export function EntityPicker({
   value,
   placeholder,
   options,
-  loading,
+  loading = false,
   onSelect,
   onOpen,
 }: EntityPickerProps) {
@@ -51,7 +51,7 @@ export function EntityPicker({
           open={open}
           onOpenChange={(next) => {
             setOpen(next);
-            if (next) onOpen();
+            if (next) onOpen?.();
           }}
         >
           <PopoverTrigger asChild>

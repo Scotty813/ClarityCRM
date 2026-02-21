@@ -25,6 +25,7 @@ import type {
   DealWithRelations,
   DealActivityWithAuthor,
   MemberRole,
+  SelectOption,
 } from "@/lib/types/database";
 
 interface CompanyDetailDrawerProps {
@@ -60,6 +61,10 @@ function DrawerContent({ companyId }: { companyId: string }) {
   const [activities, setActivities] = useState<DealActivityWithAuthor[]>([]);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserRole, setCurrentUserRole] = useState<MemberRole>("member");
+  const [fieldOptions, setFieldOptions] = useState<{
+    members: SelectOption[];
+    tags: { id: string; name: string; color: string }[];
+  }>({ members: [], tags: [] });
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -75,6 +80,7 @@ function DrawerContent({ companyId }: { companyId: string }) {
           setActivities(result.activities);
           setCurrentUserId(result.currentUserId);
           setCurrentUserRole(result.currentUserRole);
+          setFieldOptions({ members: result.members, tags: result.allTags });
         }
       } finally {
         if (!silent) setLoading(false);
@@ -153,6 +159,7 @@ function DrawerContent({ companyId }: { companyId: string }) {
           <ScrollArea className="h-full">
             <CompanyOverviewTab
               company={company}
+              fieldOptions={fieldOptions}
               onMutationSuccess={handleMutationSuccess}
             />
           </ScrollArea>

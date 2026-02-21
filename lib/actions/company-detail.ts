@@ -24,7 +24,9 @@ export async function getCompanyDetail(companyId: string) {
     { data: contacts },
     { data: deals },
     { data: activities },
-    { data: tags },
+    { data: companyTagRows },
+    { data: members },
+    { data: allTags },
   ] = await Promise.all([
     supabase
       .from("companies")
@@ -57,6 +59,15 @@ export async function getCompanyDetail(companyId: string) {
       .from("company_tags")
       .select("tag_id, tags(id, name, color)")
       .eq("company_id", companyId),
+    supabase
+      .from("organization_users")
+      .select("user_id, profiles(full_name)")
+      .eq("organization_id", orgId),
+    supabase
+      .from("tags")
+      .select("id, name, color")
+      .eq("organization_id", orgId)
+      .order("name", { ascending: true }),
   ]);
 
   if (!company) {
@@ -104,13 +115,21 @@ export async function getCompanyDetail(companyId: string) {
     };
   });
 
-  const companyTags = (tags ?? []).map((ct) => {
+  const companyTags = (companyTagRows ?? []).map((ct) => {
     const tag = ct.tags as unknown as {
       id: string;
       name: string;
       color: string;
     };
     return tag;
+  });
+
+  const memberOptions: SelectOption[] = (members ?? []).map((m) => {
+    const profile = m.profiles as unknown as { full_name: string | null };
+    return {
+      id: m.user_id,
+      name: profile?.full_name ?? "Unknown",
+    };
   });
 
   const enrichedCompany: CompanyWithRelations = {
@@ -138,41 +157,7 @@ export async function getCompanyDetail(companyId: string) {
     activities: enrichedActivities,
     currentUserId: userId,
     currentUserRole: role,
-  };
-}
-
-export async function getCompanyFieldOptions() {
-  const result = await tryAuthorize("company:edit");
-  if (!result.authorized) {
-    return { success: false as const, error: result.error };
-  }
-
-  const { orgId } = result.context;
-  const supabase = await createClient();
-
-  const [{ data: members }, { data: tags }] = await Promise.all([
-    supabase
-      .from("organization_users")
-      .select("user_id, profiles(full_name)")
-      .eq("organization_id", orgId),
-    supabase
-      .from("tags")
-      .select("id, name, color")
-      .eq("organization_id", orgId)
-      .order("name", { ascending: true }),
-  ]);
-
-  const memberOptions: SelectOption[] = (members ?? []).map((m) => {
-    const profile = m.profiles as unknown as { full_name: string | null };
-    return {
-      id: m.user_id,
-      name: profile?.full_name ?? "Unknown",
-    };
-  });
-
-  return {
-    success: true as const,
     members: memberOptions,
-    tags: tags ?? [],
+    allTags: (allTags ?? []) as { id: string; name: string; color: string }[],
   };
 }

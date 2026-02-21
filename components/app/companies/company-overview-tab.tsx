@@ -37,7 +37,6 @@ import {
 } from "@/lib/companies";
 import { formatCurrency, formatRelativeTime } from "@/lib/format";
 import { updateCompanyField } from "@/lib/actions/companies";
-import { getCompanyFieldOptions } from "@/lib/actions/company-detail";
 import { createTag, addCompanyTag, removeCompanyTag } from "@/lib/actions/tags";
 import { cn } from "@/lib/utils";
 import type {
@@ -48,33 +47,20 @@ import type {
 
 interface CompanyOverviewTabProps {
   company: CompanyWithRelations;
+  fieldOptions: {
+    members: SelectOption[];
+    tags: { id: string; name: string; color: string }[];
+  };
   onMutationSuccess: () => void;
 }
 
 export function CompanyOverviewTab({
   company,
+  fieldOptions,
   onMutationSuccess,
 }: CompanyOverviewTabProps) {
-  const [fieldOptions, setFieldOptions] = useState<{
-    members: SelectOption[];
-    tags: { id: string; name: string; color: string }[];
-  } | null>(null);
-  const [optionsLoading, setOptionsLoading] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [showTagInput, setShowTagInput] = useState(false);
-
-  const loadOptions = useCallback(async () => {
-    if (fieldOptions || optionsLoading) return;
-    setOptionsLoading(true);
-    try {
-      const result = await getCompanyFieldOptions();
-      if (result.success) {
-        setFieldOptions({ members: result.members, tags: result.tags });
-      }
-    } finally {
-      setOptionsLoading(false);
-    }
-  }, [fieldOptions, optionsLoading]);
 
   const handleFieldUpdate = useCallback(
     async (field: CompanyUpdatableField, value: string | null) => {
@@ -152,7 +138,7 @@ export function CompanyOverviewTab({
     .join(", ");
 
   // Tags not yet assigned to this company
-  const availableTags = (fieldOptions?.tags ?? []).filter(
+  const availableTags = fieldOptions.tags.filter(
     (t) => !company.tags.some((ct) => ct.id === t.id)
   );
 
@@ -223,9 +209,7 @@ export function CompanyOverviewTab({
           label="Owner"
           value={company.owner_name}
           placeholder="Assign owner..."
-          options={fieldOptions?.members ?? []}
-          loading={optionsLoading}
-          onOpen={loadOptions}
+          options={fieldOptions.members}
           onSelect={handleOwnerUpdate}
         />
       </div>
@@ -299,35 +283,33 @@ export function CompanyOverviewTab({
             </div>
           ) : (
             <div className="flex items-center gap-1">
-              {availableTags.length > 0 && (
-                <Select
-                  value=""
-                  onValueChange={(tagId) => handleAddTag(tagId)}
-                  onOpenChange={(open) => {
-                    if (open) loadOptions();
-                  }}
-                >
-                  <SelectTrigger className="h-6 w-auto gap-1 border-dashed px-2 text-xs">
-                    <Plus className="size-3" />
-                    Add
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTags.map((tag) => (
+              <Select
+                value=""
+                onValueChange={(tagId) => handleAddTag(tagId)}
+              >
+                <SelectTrigger className="h-6 w-auto gap-1 border-dashed px-2 text-xs">
+                  <Plus className="size-3" />
+                  Add
+                </SelectTrigger>
+                <SelectContent position="popper" align="start">
+                  {availableTags.length > 0 ? (
+                    availableTags.map((tag) => (
                       <SelectItem key={tag.id} value={tag.id}>
                         {tag.name}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+                    ))
+                  ) : (
+                    <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                      No more tags
+                    </p>
+                  )}
+                </SelectContent>
+              </Select>
               <Button
                 variant="ghost"
                 size="sm"
                 className="h-6 px-2 text-xs"
-                onClick={() => {
-                  setShowTagInput(true);
-                  loadOptions();
-                }}
+                onClick={() => setShowTagInput(true)}
               >
                 <Plus className="mr-1 size-3" />
                 New

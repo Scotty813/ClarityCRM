@@ -177,6 +177,7 @@ export function CompaniesView({
         open={createOpen}
         onOpenChange={setCreateOpen}
         members={members}
+        currentUserId={currentUserId}
       />
 
       <CompanyDetailDrawer
