@@ -8,6 +8,7 @@ describe("can()", () => {
   });
 
   it("denies members admin-level actions", () => {
+    expect(can("member", "member:edit")).toBe(false);
     expect(can("member", "member:invite")).toBe(false);
     expect(can("member", "member:remove")).toBe(false);
     expect(can("member", "org:edit")).toBe(false);
@@ -15,6 +16,7 @@ describe("can()", () => {
   });
 
   it("grants admins invite and remove but not owner-level", () => {
+    expect(can("admin", "member:edit")).toBe(true);
     expect(can("admin", "member:invite")).toBe(true);
     expect(can("admin", "member:remove")).toBe(true);
     expect(can("admin", "org:edit")).toBe(true);
@@ -37,6 +39,7 @@ describe("can()", () => {
       "org:delete",
       "org:switch",
       "member:read",
+      "member:edit",
       "member:invite",
       "member:remove",
       "member:edit-role",
@@ -96,6 +99,6 @@ describe("permissionsForRole()", () => {
 
   it("returns all permissions for owner", () => {
     const perms = permissionsForRole("owner");
-    expect(perms).toHaveLength(17);
+    expect(perms).toHaveLength(18);
   });
 });

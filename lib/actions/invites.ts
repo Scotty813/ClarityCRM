@@ -49,15 +49,13 @@ export async function inviteUser(
     return { success: false, error: "Only owners can assign the owner role" };
   }
 
-  const fullName = [firstName, lastName]
-    .map((s) => s?.trim())
-    .filter(Boolean)
-    .join(" ") || null;
+  const trimmedFirst = firstName?.trim() || null;
+  const trimmedLast = lastName?.trim() || null;
 
   // Check if user already exists
   const { data: existingProfile } = await adminSupabase
     .from("profiles")
-    .select("id, full_name")
+    .select("id, first_name")
     .eq("email", email)
     .maybeSingle();
 
@@ -87,11 +85,11 @@ export async function inviteUser(
       return { success: false, error: insertError.message };
     }
 
-    // Backfill full_name if the existing user doesn't have one yet
-    if (fullName && !existingProfile.full_name) {
+    // Backfill name if the existing user doesn't have one yet
+    if ((trimmedFirst || trimmedLast) && !existingProfile.first_name) {
       await adminSupabase
         .from("profiles")
-        .update({ full_name: fullName })
+        .update({ first_name: trimmedFirst, last_name: trimmedLast })
         .eq("id", existingProfile.id);
     }
 
@@ -108,7 +106,8 @@ export async function inviteUser(
       data: {
         invited_to_org: orgId,
         invited_role: role,
-        ...(fullName ? { full_name: fullName } : {}),
+        ...(trimmedFirst ? { first_name: trimmedFirst } : {}),
+        ...(trimmedLast ? { last_name: trimmedLast } : {}),
       },
     }
   );

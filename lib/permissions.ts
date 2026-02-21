@@ -22,6 +22,7 @@ const PERMISSION_LEVEL = {
 
   // Members
   "member:read": "member",
+  "member:edit": "admin",
   "member:invite": "admin",
   "member:remove": "admin",
   "member:edit-role": "owner",

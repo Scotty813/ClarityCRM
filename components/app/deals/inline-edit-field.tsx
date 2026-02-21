@@ -53,11 +53,8 @@ export function InlineEditField({
   useEffect(() => {
     if (editing) {
       setDraft(rawValue());
-      // Small delay to ensure the input is mounted
-      requestAnimationFrame(() => {
-        inputRef.current?.focus();
-        inputRef.current?.select();
-      });
+      inputRef.current?.focus();
+      inputRef.current?.select();
     }
   }, [editing, rawValue]);
 

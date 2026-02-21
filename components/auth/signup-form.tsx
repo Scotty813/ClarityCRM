@@ -36,10 +36,8 @@ export function SignupForm() {
   async function onSubmit(values: SignupFormValues) {
     setError(null);
 
-    const fullName = [values.first_name, values.last_name]
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .join(" ");
+    const firstName = values.first_name.trim() || undefined;
+    const lastName = values.last_name.trim() || undefined;
 
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({
@@ -47,7 +45,9 @@ export function SignupForm() {
       password: values.password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
-        data: fullName ? { full_name: fullName } : undefined,
+        data: firstName || lastName
+          ? { first_name: firstName, last_name: lastName }
+          : undefined,
       },
     });
 
