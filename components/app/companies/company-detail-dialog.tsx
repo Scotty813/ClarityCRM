@@ -37,14 +37,16 @@ function companyToForm(company: Company): CompanyFormData {
 }
 
 interface CompanyDetailDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   company: Company | null;
-  onClose: () => void;
   defaultEditing?: boolean;
 }
 
 export function CompanyDetailDialog({
+  open,
+  onOpenChange,
   company,
-  onClose,
   defaultEditing = false,
 }: CompanyDetailDialogProps) {
   const { can } = usePermissions();
@@ -79,7 +81,7 @@ export function CompanyDetailDialog({
       }
 
       toast.success("Company updated");
-      onClose();
+      onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -101,7 +103,7 @@ export function CompanyDetailDialog({
       }
 
       toast.success("Company deleted");
-      onClose();
+      onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -115,7 +117,7 @@ export function CompanyDetailDialog({
   }
 
   return (
-    <Dialog open={!!company} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         {company && (
           <>

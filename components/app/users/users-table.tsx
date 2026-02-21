@@ -35,6 +35,7 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
   const { can } = usePermissions();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
+  const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
   const query = search.toLowerCase();
@@ -95,7 +96,10 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
                   <TableRow
                     key={user.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setUserDetailOpen(true);
+                    }}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -142,8 +146,9 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
       </div>
 
       <UserDetailDialog
+        open={userDetailOpen}
+        onOpenChange={setUserDetailOpen}
         user={selectedUser}
-        onClose={() => setSelectedUser(null)}
       />
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />

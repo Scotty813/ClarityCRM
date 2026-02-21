@@ -45,16 +45,18 @@ interface CompanyOption {
 }
 
 interface ContactDetailDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   contact: ContactWithCompany | null;
   companies: CompanyOption[];
-  onClose: () => void;
   defaultEditing?: boolean;
 }
 
 export function ContactDetailDialog({
+  open,
+  onOpenChange,
   contact,
   companies,
-  onClose,
   defaultEditing = false,
 }: ContactDetailDialogProps) {
   const { can } = usePermissions();
@@ -93,7 +95,7 @@ export function ContactDetailDialog({
       }
 
       toast.success("Contact updated");
-      onClose();
+      onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -115,7 +117,7 @@ export function ContactDetailDialog({
       }
 
       toast.success("Contact deleted");
-      onClose();
+      onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -124,7 +126,7 @@ export function ContactDetailDialog({
   }
 
   return (
-    <Dialog open={!!contact} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         {contact && (
           <>
