@@ -4,6 +4,8 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type MemberRole = Database["public"]["Enums"]["member_role"];
 export type Company = Database["public"]["Tables"]["companies"]["Row"];
 export type Contact = Database["public"]["Tables"]["contacts"]["Row"];
+export type Tag = Database["public"]["Tables"]["tags"]["Row"];
+export type LifecycleStage = Database["public"]["Enums"]["lifecycle_stage"];
 
 export interface UserOrganization {
   id: string;
@@ -39,7 +41,55 @@ export interface CompanyFormData {
   postal_code: string;
   country: string;
   notes: string;
+  owner_id: string;
+  lifecycle_stage: LifecycleStage;
 }
+
+export interface CompanyWithRelations extends Company {
+  owner_name: string | null;
+  owner_avatar_url: string | null;
+  open_deals_count: number;
+  pipeline_value: number;
+  contact_count: number;
+  last_activity_at: string | null;
+  next_task_title: string | null;
+  next_task_due_date: string | null;
+  tags: { id: string; name: string; color: string }[];
+}
+
+export type CompanyQuickFilter =
+  | "my_accounts"
+  | "needs_followup"
+  | "no_activity_30d"
+  | "high_value";
+
+export type CompanySortField =
+  | "last_activity"
+  | "pipeline_value"
+  | "created_at"
+  | "name";
+
+export interface CompanyFilterState {
+  search: string;
+  owner: string;
+  lifecycleStages: LifecycleStage[];
+  quickFilters: CompanyQuickFilter[];
+  sort: CompanySortField;
+}
+
+export type CompanyUpdatableField =
+  | "owner_id"
+  | "lifecycle_stage"
+  | "domain"
+  | "industry"
+  | "phone"
+  | "notes"
+  | "address_line1"
+  | "address_line2"
+  | "city"
+  | "state"
+  | "postal_code"
+  | "country";
 
 export interface ContactFormData {
   first_name: string;

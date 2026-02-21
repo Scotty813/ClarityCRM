@@ -13,7 +13,7 @@ import {
   Users,
   Loader2,
 } from "lucide-react";
-import { InlineEditField } from "./inline-edit-field";
+import { InlineEditField } from "@/components/app/shared/inline-edit-field";
 import { toast } from "sonner";
 import {
   Sheet,
@@ -48,7 +48,7 @@ import { DealActivityList } from "./deal-activity-list";
 import { DealTimeline } from "./deal-timeline";
 import { DealTasks } from "./deal-tasks";
 import { CloseDealDialog } from "./close-deal-dialog";
-import { EntityPicker } from "./entity-picker";
+import { EntityPicker } from "@/components/app/shared/entity-picker";
 import type {
   DealWithRelations,
   DealActivityWithAuthor,

@@ -14,8 +14,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { createCompany } from "@/lib/actions/companies";
-import type { CompanyFormData } from "@/lib/types/database";
+import { LIFECYCLE_STAGES, LIFECYCLE_LABELS } from "@/lib/companies";
+import type { CompanyFormData, LifecycleStage } from "@/lib/types/database";
+
+interface SelectOption {
+  id: string;
+  name: string;
+}
 
 const EMPTY_FORM: CompanyFormData = {
   name: "",
@@ -29,14 +42,21 @@ const EMPTY_FORM: CompanyFormData = {
   postal_code: "",
   country: "",
   notes: "",
+  owner_id: "",
+  lifecycle_stage: "lead",
 };
 
 interface CreateCompanyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  members?: SelectOption[];
 }
 
-export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogProps) {
+export function CreateCompanyDialog({
+  open,
+  onOpenChange,
+  members = [],
+}: CreateCompanyDialogProps) {
   const [form, setForm] = useState<CompanyFormData>(EMPTY_FORM);
   const [loading, setLoading] = useState(false);
 
@@ -71,14 +91,14 @@ export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogP
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Company</DialogTitle>
-          <DialogDescription>
-            Add a new company to your CRM.
-          </DialogDescription>
+          <DialogDescription>Add a new company to your CRM.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="company-name">Company name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="company-name">
+              Company name <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="company-name"
               placeholder="Acme Inc."
@@ -106,6 +126,50 @@ export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogP
                 value={form.industry}
                 onChange={(e) => update("industry", e.target.value)}
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="company-owner">Owner</Label>
+              <Select
+                value={form.owner_id || "none"}
+                onValueChange={(v) =>
+                  update("owner_id", v === "none" ? "" : v)
+                }
+              >
+                <SelectTrigger id="company-owner">
+                  <SelectValue placeholder="Select owner" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No owner</SelectItem>
+                  {members.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="company-lifecycle">Lifecycle stage</Label>
+              <Select
+                value={form.lifecycle_stage}
+                onValueChange={(v) =>
+                  update("lifecycle_stage", v as LifecycleStage)
+                }
+              >
+                <SelectTrigger id="company-lifecycle">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LIFECYCLE_STAGES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {LIFECYCLE_LABELS[s]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -25,9 +25,11 @@ export type Database = {
           domain: string | null
           id: string
           industry: string | null
+          lifecycle_stage: Database["public"]["Enums"]["lifecycle_stage"]
           name: string
           notes: string | null
           organization_id: string
+          owner_id: string | null
           phone: string | null
           postal_code: string | null
           state: string | null
@@ -43,9 +45,11 @@ export type Database = {
           domain?: string | null
           id?: string
           industry?: string | null
+          lifecycle_stage?: Database["public"]["Enums"]["lifecycle_stage"]
           name: string
           notes?: string | null
           organization_id: string
+          owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           state?: string | null
@@ -61,9 +65,11 @@ export type Database = {
           domain?: string | null
           id?: string
           industry?: string | null
+          lifecycle_stage?: Database["public"]["Enums"]["lifecycle_stage"]
           name?: string
           notes?: string | null
           organization_id?: string
+          owner_id?: string | null
           phone?: string | null
           postal_code?: string | null
           state?: string | null
@@ -75,6 +81,43 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_tags: {
+        Row: {
+          company_id: string
+          tag_id: string
+        }
+        Insert: {
+          company_id: string
+          tag_id: string
+        }
+        Update: {
+          company_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_tags_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
             referencedColumns: ["id"]
           },
         ]
@@ -464,6 +507,38 @@ export type Database = {
           },
         ]
       }
+      tags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -474,6 +549,7 @@ export type Database = {
     Enums: {
       deal_activity_type: "note" | "stage_change" | "call" | "email" | "meeting"
       deal_stage: "qualified" | "proposal" | "negotiation" | "won" | "lost"
+      lifecycle_stage: "lead" | "prospect" | "customer" | "churned" | "partner"
       member_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -604,6 +680,7 @@ export const Constants = {
     Enums: {
       deal_activity_type: ["note", "stage_change", "call", "email", "meeting"],
       deal_stage: ["qualified", "proposal", "negotiation", "won", "lost"],
+      lifecycle_stage: ["lead", "prospect", "customer", "churned", "partner"],
       member_role: ["owner", "admin", "member"],
     },
   },

@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { tryAuthorize } from "@/lib/supabase/authorize";
-import type { CompanyFormData } from "@/lib/types/database";
+import type { CompanyFormData, CompanyUpdatableField } from "@/lib/types/database";
 
 export async function createCompany(data: CompanyFormData) {
   const result = await tryAuthorize("company:create");
@@ -28,6 +28,8 @@ export async function createCompany(data: CompanyFormData) {
     postal_code: data.postal_code.trim() || null,
     country: data.country.trim() || null,
     notes: data.notes.trim() || null,
+    owner_id: data.owner_id || null,
+    lifecycle_stage: data.lifecycle_stage,
   });
 
   if (error) return { success: false, error: error.message };
@@ -59,7 +61,34 @@ export async function updateCompany(companyId: string, data: CompanyFormData) {
       postal_code: data.postal_code.trim() || null,
       country: data.country.trim() || null,
       notes: data.notes.trim() || null,
+      owner_id: data.owner_id || null,
+      lifecycle_stage: data.lifecycle_stage,
     })
+    .eq("id", companyId)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/companies");
+  return { success: true };
+}
+
+export async function updateCompanyField(
+  companyId: string,
+  field: CompanyUpdatableField,
+  value: string | null
+) {
+  const result = await tryAuthorize("company:edit");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("companies")
+    .update({ [field]: value })
     .eq("id", companyId)
     .eq("organization_id", orgId);
 
