@@ -41,7 +41,9 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<ContactWithCompany | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<ContactWithCompany | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const query = search.toLowerCase();
   const filtered = contacts.filter(
@@ -125,7 +127,10 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
                   <TableRow
                     key={contact.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedContact(contact)}
+                    onClick={() => {
+                      setSelectedContact(contact);
+                      setDetailOpen(true);
+                    }}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -172,6 +177,7 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingContact(contact);
+                                setEditOpen(true);
                               }}
                             >
                               <Pencil className="mr-2 size-4" />
@@ -205,15 +211,17 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
       />
 
       <ContactDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
         contact={selectedContact}
         companies={companies}
-        onClose={() => setSelectedContact(null)}
       />
 
       <ContactDetailDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
         contact={editingContact}
         companies={companies}
-        onClose={() => setEditingContact(null)}
         defaultEditing
       />
     </>

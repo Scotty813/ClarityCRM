@@ -34,7 +34,9 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   const [editingCompany, setEditingCompany] = useState<Company | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   const query = search.toLowerCase();
   const filtered = companies.filter((c) =>
@@ -109,7 +111,10 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
                   <TableRow
                     key={company.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedCompany(company)}
+                    onClick={() => {
+                      setSelectedCompany(company);
+                      setDetailOpen(true);
+                    }}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -149,6 +154,7 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingCompany(company);
+                                setEditOpen(true);
                               }}
                             >
                               <Pencil className="mr-2 size-4" />
@@ -178,13 +184,15 @@ export function CompaniesTable({ companies }: CompaniesTableProps) {
       <CreateCompanyDialog open={createOpen} onOpenChange={setCreateOpen} />
 
       <CompanyDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
         company={selectedCompany}
-        onClose={() => setSelectedCompany(null)}
       />
 
       <CompanyDetailDialog
+        open={editOpen}
+        onOpenChange={setEditOpen}
         company={editingCompany}
-        onClose={() => setEditingCompany(null)}
         defaultEditing
       />
     </>

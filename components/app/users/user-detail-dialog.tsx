@@ -49,11 +49,12 @@ const roleBadgeVariant: Record<MemberRole, "default" | "outline" | "secondary"> 
 };
 
 interface UserDetailDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
   user: OrgUser | null;
-  onClose: () => void;
 }
 
-export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
+export function UserDetailDialog({ open, onOpenChange, user }: UserDetailDialogProps) {
   const { can } = usePermissions();
   const router = useRouter();
   const canEdit = can("member:edit");
@@ -92,14 +93,14 @@ export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
 
       toast.success("Member updated successfully");
       router.refresh();
-      onClose();
+      onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
     }
   }
 
   return (
-    <Dialog open={!!user} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         {user && (
           <>
@@ -206,7 +207,7 @@ export function UserDetailDialog({ user, onClose }: UserDetailDialogProps) {
                     <Button
                       type="button"
                       variant="outline"
-                      onClick={onClose}
+                      onClick={() => onOpenChange(false)}
                     >
                       Cancel
                     </Button>
