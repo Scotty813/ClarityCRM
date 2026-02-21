@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -11,45 +11,73 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { createCompany } from "@/lib/actions/companies";
-import type { CompanyFormData } from "@/lib/types/database";
+import { zodResolverCompat } from "@/lib/validations/resolver";
+import {
+  companyFormSchema,
+  type CompanyFormValues,
+} from "@/lib/validations/company";
+import { LIFECYCLE_STAGES, LIFECYCLE_LABELS } from "@/lib/companies";
 
-const EMPTY_FORM: CompanyFormData = {
-  name: "",
-  domain: "",
-  industry: "",
-  phone: "",
-  address_line1: "",
-  address_line2: "",
-  city: "",
-  state: "",
-  postal_code: "",
-  country: "",
-  notes: "",
-};
+interface SelectOption {
+  id: string;
+  name: string;
+}
 
 interface CreateCompanyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  members?: SelectOption[];
+  currentUserId: string;
 }
 
-export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogProps) {
-  const [form, setForm] = useState<CompanyFormData>(EMPTY_FORM);
-  const [loading, setLoading] = useState(false);
+export function CreateCompanyDialog({
+  open,
+  onOpenChange,
+  members = [],
+  currentUserId,
+}: CreateCompanyDialogProps) {
+  const defaults: CompanyFormValues = {
+    name: "",
+    domain: "",
+    industry: "",
+    phone: "",
+    address_line1: "",
+    address_line2: "",
+    city: "",
+    state: "",
+    postal_code: "",
+    country: "",
+    notes: "",
+    owner_id: currentUserId,
+    lifecycle_stage: "lead",
+  };
 
-  function update(field: keyof CompanyFormData, value: string) {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  }
+  const form = useForm<CompanyFormValues>({
+    resolver: zodResolverCompat(companyFormSchema),
+    defaultValues: defaults,
+  });
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-
-    setLoading(true);
+  async function onSubmit(values: CompanyFormValues) {
     try {
-      const result = await createCompany(form);
+      const result = await createCompany(values);
 
       if (!result.success) {
         toast.error(result.error);
@@ -57,132 +85,270 @@ export function CreateCompanyDialog({ open, onOpenChange }: CreateCompanyDialogP
       }
 
       toast.success("Company created");
-      setForm(EMPTY_FORM);
+      form.reset(defaults);
       onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
-    } finally {
-      setLoading(false);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v) form.reset(defaults);
+        onOpenChange(v);
+      }}
+    >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add Company</DialogTitle>
-          <DialogDescription>
-            Add a new company to your CRM.
-          </DialogDescription>
+          <DialogDescription>Add a new company to your CRM.</DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="company-name">Company name <span className="text-destructive">*</span></Label>
-            <Input
-              id="company-name"
-              placeholder="Acme Inc."
-              value={form.name}
-              onChange={(e) => update("name", e.target.value)}
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Company name{" "}
+                    <span className="text-destructive">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <Input placeholder="Acme Inc." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="company-domain">Website</Label>
-              <Input
-                id="company-domain"
-                placeholder="acme.com"
-                value={form.domain}
-                onChange={(e) => update("domain", e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="company-industry">Industry</Label>
-              <Input
-                id="company-industry"
-                placeholder="Technology"
-                value={form.industry}
-                onChange={(e) => update("industry", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company-phone">Phone</Label>
-            <Input
-              id="company-phone"
-              type="tel"
-              placeholder="+1 (555) 000-0000"
-              value={form.phone}
-              onChange={(e) => update("phone", e.target.value)}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="company-address1">Address</Label>
-            <Input
-              id="company-address1"
-              placeholder="Street address"
-              value={form.address_line1}
-              onChange={(e) => update("address_line1", e.target.value)}
-            />
-            <Input
-              placeholder="Apt, suite, etc. (optional)"
-              value={form.address_line2}
-              onChange={(e) => update("address_line2", e.target.value)}
-            />
             <div className="grid grid-cols-2 gap-4">
-              <Input
-                placeholder="City"
-                value={form.city}
-                onChange={(e) => update("city", e.target.value)}
+              <FormField
+                control={form.control}
+                name="domain"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Website</FormLabel>
+                    <FormControl>
+                      <Input placeholder="acme.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <Input
-                placeholder="State / Province"
-                value={form.state}
-                onChange={(e) => update("state", e.target.value)}
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industry</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Technology" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <Input
-                placeholder="Postal code"
-                value={form.postal_code}
-                onChange={(e) => update("postal_code", e.target.value)}
+              <FormField
+                control={form.control}
+                name="owner_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Owner</FormLabel>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "none" ? "" : v)
+                      }
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select owner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No owner</SelectItem>
+                        {members.map((m) => (
+                          <SelectItem key={m.id} value={m.id}>
+                            {m.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              <Input
-                placeholder="Country"
-                value={form.country}
-                onChange={(e) => update("country", e.target.value)}
+              <FormField
+                control={form.control}
+                name="lifecycle_stage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Lifecycle stage</FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {LIFECYCLE_STAGES.map((s) => (
+                          <SelectItem key={s} value={s}>
+                            {LIFECYCLE_LABELS[s]}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="company-notes">Notes</Label>
-            <Textarea
-              id="company-notes"
-              placeholder="Any additional notes..."
-              value={form.notes}
-              onChange={(e) => update("notes", e.target.value)}
-              rows={3}
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="tel"
+                      placeholder="+1 (555) 000-0000"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Company"}
-            </Button>
-          </DialogFooter>
-        </form>
+            <div className="space-y-2">
+              <FormField
+                control={form.control}
+                name="address_line1"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Address</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Street address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="address_line2"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input
+                        placeholder="Apt, suite, etc. (optional)"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="city"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="City" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="state"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="State / Province" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="postal_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Postal code" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder="Country" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notes</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Any additional notes..."
+                      rows={3}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                {form.formState.isSubmitting
+                  ? "Creating..."
+                  : "Create Company"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
