@@ -29,3 +29,16 @@ export function formatCurrency(value: number | null): string {
   if (value === null) return "\u2014";
   return `$${value.toLocaleString()}`;
 }
+
+export function formatCompactCurrency(value: number | null): string {
+  if (value === null) return "\u2014";
+  if (value >= 1_000_000_000) {
+    const billions = value / 1_000_000_000;
+    return `$${billions % 1 === 0 ? billions.toFixed(0) : billions.toFixed(1).replace(/\.0$/, "")}B`;
+  }
+  if (value >= 1_000_000) {
+    const millions = value / 1_000_000;
+    return `$${millions % 1 === 0 ? millions.toFixed(0) : millions.toFixed(1).replace(/\.0$/, "")}M`;
+  }
+  return formatCurrency(value);
+}

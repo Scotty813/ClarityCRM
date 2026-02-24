@@ -35,7 +35,7 @@ import {
   TAG_COLOR_CLASSES,
   type TagColor,
 } from "@/lib/companies";
-import { formatCurrency, formatRelativeTime } from "@/lib/format";
+import { formatCompactCurrency, formatCurrency, formatRelativeTime } from "@/lib/format";
 import { updateCompanyField } from "@/lib/actions/companies";
 import { createTag, addCompanyTag, removeCompanyTag } from "@/lib/actions/tags";
 import { cn } from "@/lib/utils";
@@ -149,7 +149,7 @@ export function CompanyOverviewTab({
         <div className="rounded-lg border p-3">
           <DollarSign className="mb-1 size-4 text-muted-foreground" />
           <p className="text-lg font-semibold tabular-nums">
-            {formatCurrency(company.pipeline_value || null)}
+            {formatCompactCurrency(company.pipeline_value || null)}
           </p>
           <p className="text-[11px] text-muted-foreground">Pipeline</p>
         </div>

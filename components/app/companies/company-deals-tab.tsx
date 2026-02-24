@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Briefcase } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { STAGE_LABELS, STAGE_BADGE_COLORS } from "@/lib/deals";
@@ -28,7 +29,12 @@ export function CompanyDealsTab({ deals }: CompanyDealsTabProps) {
       {deals.map((deal) => (
         <div key={deal.id} className="flex items-center gap-3 py-3">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">{deal.name}</p>
+            <Link
+              href={`/deals/${deal.id}`}
+              className="truncate text-sm font-medium hover:underline"
+            >
+              {deal.name}
+            </Link>
             <div className="mt-0.5 flex items-center gap-2">
               <Badge
                 variant="secondary"
