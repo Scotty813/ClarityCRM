@@ -42,6 +42,7 @@ interface DealsViewProps {
 const EMPTY_FILTERS: DealFilterState = {
   search: "",
   owner: "",
+  company: "",
   stages: [],
   closeDateFrom: "",
   closeDateTo: "",
@@ -99,6 +100,9 @@ export function DealsView({
       // Owner
       if (filters.owner && deal.owner_id !== filters.owner) return false;
 
+      // Company
+      if (filters.company && deal.company_id !== filters.company) return false;
+
       // Stages
       if (filters.stages.length > 0 && !filters.stages.includes(deal.stage))
         return false;
@@ -155,6 +159,7 @@ export function DealsView({
           filters={filters}
           onChange={setFilters}
           members={members}
+          companies={companies}
         />
 
         <Tabs defaultValue="kanban">

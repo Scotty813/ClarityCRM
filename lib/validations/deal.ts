@@ -8,7 +8,7 @@ export const dealFormSchema = z.object({
   stage: z.enum(["qualified", "proposal", "negotiation", "won", "lost"]),
   expected_close_date: z.string(),
   owner_id: z.string(),
-  contact_id: z.string().min(1, "Contact is required"),
+  contact_id: z.string(),
   company_id: z.string().min(1, "Company is required"),
   notes: z.string(),
   lost_reason: z.string(),
