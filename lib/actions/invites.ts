@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
 import { tryAuthorize } from "@/lib/supabase/authorize";
 import { can } from "@/lib/permissions";
+import { resolveOrigin } from "@/lib/utils";
 import type { MemberRole } from "@/lib/types/database";
 
 const MEMBER_ROLES: MemberRole[] = ["owner", "admin", "member"];
@@ -16,17 +17,7 @@ function isMemberRole(value: unknown): value is MemberRole {
 
 async function getAppOrigin() {
   const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-
-  if (!host) {
-    return null;
-  }
-
-  const forwardedProto = requestHeaders.get("x-forwarded-proto");
-  const protocol =
-    forwardedProto ??
-    (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
-  return `${protocol}://${host}`;
+  return resolveOrigin(requestHeaders);
 }
 
 export async function inviteUser(

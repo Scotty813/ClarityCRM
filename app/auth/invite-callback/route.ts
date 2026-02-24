@@ -1,8 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { resolveOrigin } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = resolveOrigin(request.headers) ?? new URL(request.url).origin;
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type");
 
