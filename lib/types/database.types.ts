@@ -509,21 +509,21 @@ export type Database = {
       }
       tags: {
         Row: {
-          color: string
+          color: string | null
           created_at: string
           id: string
           name: string
           organization_id: string
         }
         Insert: {
-          color?: string
+          color?: string | null
           created_at?: string
           id?: string
           name: string
           organization_id: string
         }
         Update: {
-          color?: string
+          color?: string | null
           created_at?: string
           id?: string
           name?: string

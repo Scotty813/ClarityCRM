@@ -89,7 +89,7 @@ export default async function DealsPage() {
       company_name: company?.name ?? null,
       owner_name: owner?.full_name ?? null,
       owner_avatar_url: owner?.avatar_url ?? null,
-      last_activity_at: lastActivityMap.get(d.id) ?? null,
+      last_activity_at: lastActivityMap.get(d.id) ?? d.created_at,
       next_task_title: nextTask?.title ?? null,
       next_task_due_date: nextTask?.due_date ?? null,
     };
