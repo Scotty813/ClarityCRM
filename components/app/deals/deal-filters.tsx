@@ -1,6 +1,7 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,8 +10,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 import { DEAL_STAGES, STAGE_LABELS } from "@/lib/deals";
 import type { DealStage } from "@/lib/types/database";
 
@@ -19,6 +31,7 @@ export type QuickFilter = "my_deals" | "closing_this_month" | "stale" | "high_va
 export interface DealFilterState {
   search: string;
   owner: string;
+  company: string;
   stages: DealStage[];
   closeDateFrom: string;
   closeDateTo: string;
@@ -36,6 +49,7 @@ interface DealFiltersProps {
   filters: DealFilterState;
   onChange: (filters: DealFilterState) => void;
   members: SelectOption[];
+  companies: SelectOption[];
 }
 
 const QUICK_FILTER_OPTIONS: { key: QuickFilter; label: string }[] = [
@@ -45,7 +59,8 @@ const QUICK_FILTER_OPTIONS: { key: QuickFilter; label: string }[] = [
   { key: "high_value", label: "High value" },
 ];
 
-export function DealFilters({ filters, onChange, members }: DealFiltersProps) {
+export function DealFilters({ filters, onChange, members, companies }: DealFiltersProps) {
+  const [stageOpen, setStageOpen] = useState(false);
   function update(patch: Partial<DealFilterState>) {
     onChange({ ...filters, ...patch });
   }
@@ -110,32 +125,57 @@ export function DealFilters({ filters, onChange, members }: DealFiltersProps) {
           </SelectContent>
         </Select>
 
-        <div className="flex flex-wrap gap-1.5">
-          {DEAL_STAGES.filter((s) => s !== "won" && s !== "lost").map((stage) => (
-            <Badge
-              key={stage}
-              variant={filters.stages.includes(stage) ? "default" : "outline"}
-              className="cursor-pointer select-none"
-              onClick={() => toggleStage(stage)}
-            >
-              {STAGE_LABELS[stage]}
-            </Badge>
-          ))}
-          <Badge
-            variant={filters.stages.includes("won") ? "default" : "outline"}
-            className="cursor-pointer select-none"
-            onClick={() => toggleStage("won")}
-          >
-            Won
-          </Badge>
-          <Badge
-            variant={filters.stages.includes("lost") ? "destructive" : "outline"}
-            className="cursor-pointer select-none"
-            onClick={() => toggleStage("lost")}
-          >
-            Lost
-          </Badge>
-        </div>
+        <Select
+          value={filters.company || "all"}
+          onValueChange={(v) => update({ company: v === "all" ? "" : v })}
+        >
+          <SelectTrigger className="w-[160px]">
+            <SelectValue placeholder="Company" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All companies</SelectItem>
+            {companies.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Popover open={stageOpen} onOpenChange={setStageOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 w-[160px] justify-between font-normal">
+              {filters.stages.length === 0
+                ? "All stages"
+                : `${filters.stages.length} stage${filters.stages.length > 1 ? "s" : ""}`}
+              <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[180px] p-0" align="start">
+            <Command>
+              <CommandList>
+                <CommandGroup>
+                  {DEAL_STAGES.map((stage) => (
+                    <CommandItem
+                      key={stage}
+                      onSelect={() => toggleStage(stage)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 size-4",
+                          filters.stages.includes(stage)
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                      {STAGE_LABELS[stage]}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
       </div>
     </div>
   );

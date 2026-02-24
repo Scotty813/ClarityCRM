@@ -217,10 +217,12 @@ export function DealFormFields({
           name="contact_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Contact <span className="text-destructive">*</span></FormLabel>
+              <FormLabel>Contact</FormLabel>
               <Select
-                value={field.value || undefined}
-                onValueChange={field.onChange}
+                value={field.value || "none"}
+                onValueChange={(v) =>
+                  field.onChange(v === "none" ? "" : v)
+                }
                 disabled={!selectedCompanyId}
               >
                 <FormControl>
@@ -235,17 +237,12 @@ export function DealFormFields({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {filteredContacts.length === 0 ? (
-                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                      No contacts for this company
-                    </div>
-                  ) : (
-                    filteredContacts.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))
-                  )}
+                  <SelectItem value="none">No contact</SelectItem>
+                  {filteredContacts.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <FormMessage />
