@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Calendar, AlertCircle } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
@@ -31,9 +32,13 @@ export function DealCard({ deal, onClick }: DealCardProps) {
     >
       {/* Name + amount */}
       <div className="flex items-start justify-between gap-2">
-        <p className="truncate text-sm font-medium leading-snug">
+        <Link
+          href={`/deals/${deal.id}`}
+          className="truncate text-sm font-medium leading-snug hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
           {deal.name}
-        </p>
+        </Link>
         {deal.value !== null && (
           <span className="shrink-0 text-sm font-semibold">
             {formatCurrency(Number(deal.value))}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import {
   FileText,
   ListTodo,
@@ -269,7 +270,11 @@ function DrawerContent({ dealId }: { dealId: string }) {
       {/* Sticky header */}
       <SheetHeader className="border-b px-6 py-4">
         <div className="flex items-center gap-3">
-          <SheetTitle className="truncate text-lg">{deal.name}</SheetTitle>
+          <SheetTitle className="truncate text-lg">
+            <Link href={`/deals/${deal.id}`} className="hover:underline">
+              {deal.name}
+            </Link>
+          </SheetTitle>
           <Badge
             variant="secondary"
             className={cn(

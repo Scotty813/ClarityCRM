@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Link from "next/link";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -165,7 +166,15 @@ export function DealsList({ deals, onDealSelect }: DealsListProps) {
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => onDealSelect?.(deal.id)}
               >
-                <TableCell className="font-medium">{deal.name}</TableCell>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/deals/${deal.id}`}
+                    className="hover:underline"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {deal.name}
+                  </Link>
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {deal.company_name ?? "\u2014"}
                 </TableCell>
