@@ -305,6 +305,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           owner_id: string | null
+          position: number
           stage: Database["public"]["Enums"]["deal_stage"]
           updated_at: string
           value: number | null
@@ -321,6 +322,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           owner_id?: string | null
+          position?: number
           stage?: Database["public"]["Enums"]["deal_stage"]
           updated_at?: string
           value?: number | null
@@ -337,6 +339,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           owner_id?: string | null
+          position?: number
           stage?: Database["public"]["Enums"]["deal_stage"]
           updated_at?: string
           value?: number | null
