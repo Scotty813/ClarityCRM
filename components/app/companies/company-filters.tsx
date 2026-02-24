@@ -1,6 +1,8 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { useState } from "react";
+import { Check, ChevronDown, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,8 +11,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import { LIFECYCLE_STAGES, LIFECYCLE_LABELS } from "@/lib/companies";
 import type {
   CompanyFilterState,
@@ -49,6 +61,8 @@ export function CompanyFilters({
   onChange,
   members,
 }: CompanyFiltersProps) {
+  const [lifecycleOpen, setLifecycleOpen] = useState(false);
+
   function update(patch: Partial<CompanyFilterState>) {
     onChange({ ...filters, ...patch });
   }
@@ -113,20 +127,40 @@ export function CompanyFilters({
           </SelectContent>
         </Select>
 
-        <div className="flex flex-wrap gap-1.5">
-          {LIFECYCLE_STAGES.map((stage) => (
-            <Badge
-              key={stage}
-              variant={
-                filters.lifecycleStages.includes(stage) ? "default" : "outline"
-              }
-              className="cursor-pointer select-none"
-              onClick={() => toggleLifecycle(stage)}
-            >
-              {LIFECYCLE_LABELS[stage]}
-            </Badge>
-          ))}
-        </div>
+        <Popover open={lifecycleOpen} onOpenChange={setLifecycleOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="h-9 w-[160px] justify-between font-normal">
+              {filters.lifecycleStages.length === 0
+                ? "All stages"
+                : `${filters.lifecycleStages.length} stage${filters.lifecycleStages.length > 1 ? "s" : ""}`}
+              <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[180px] p-0" align="start">
+            <Command>
+              <CommandList>
+                <CommandGroup>
+                  {LIFECYCLE_STAGES.map((stage) => (
+                    <CommandItem
+                      key={stage}
+                      onSelect={() => toggleLifecycle(stage)}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 size-4",
+                          filters.lifecycleStages.includes(stage)
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                      {LIFECYCLE_LABELS[stage]}
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
 
         <Select
           value={filters.sort}
