@@ -4,8 +4,20 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Building2, Check, LogOut, Monitor, Moon, Settings, Sun, User, Users } from "lucide-react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import { OrgSwitcher } from "@/components/app/org-switcher";
 import { AppMobileNav } from "@/components/app/app-mobile-nav";
 import type { UserOrganization } from "@/lib/types/database";
@@ -18,12 +30,16 @@ interface AppHeaderProps {
 
 const navLinks = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/users", label: "Users" },
+  { href: "/contacts", label: "Contacts" },
+  { href: "/companies", label: "Companies" },
+  { href: "/deals", label: "Deals" },
 ];
 
 export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const { can } = usePermissions();
+  const { theme, setTheme } = useTheme();
 
   async function handleSignOut() {
     const supabase = createClient();
@@ -41,7 +57,16 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
               ClarityCRM
             </a>
             <span className="text-border">/</span>
-            <OrgSwitcher organizations={organizations} activeOrgId={activeOrgId} />
+            {can("org:switch") ? (
+              <OrgSwitcher organizations={organizations} activeOrgId={activeOrgId} />
+            ) : (
+              <span className="flex items-center gap-1.5 px-2 py-1.5 text-sm font-medium">
+                <Building2 className="size-4 shrink-0 text-muted-foreground" />
+                <span className="max-w-[160px] truncate">
+                  {organizations.find((o) => o.id === activeOrgId)?.name ?? "Organization"}
+                </span>
+              </span>
+            )}
           </div>
           <nav className="hidden items-center gap-1 md:flex">
             {navLinks.map((link) => (
@@ -61,12 +86,64 @@ export function AppHeader({ email, organizations, activeOrgId }: AppHeaderProps)
           </nav>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-2 md:flex">
             <span className="text-sm text-muted-foreground">{email}</span>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="mr-1.5 size-4" />
-              Log out
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className={cn(
+                    pathname.startsWith("/settings") && "bg-accent text-accent-foreground"
+                  )}
+                >
+                  <Settings className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/profile">
+                    <User className="size-4" />
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings/team">
+                    <Users className="size-4" />
+                    Team members
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <Sun className="size-4 dark:hidden" />
+                    <Moon className="hidden size-4 dark:block" />
+                    Theme
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={() => setTheme("light")}>
+                      <Sun className="size-4" />
+                      Light
+                      {theme === "light" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("dark")}>
+                      <Moon className="size-4" />
+                      Dark
+                      {theme === "dark" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setTheme("system")}>
+                      <Monitor className="size-4" />
+                      System
+                      {theme === "system" && <Check className="ml-auto size-4" />}
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem variant="destructive" onClick={handleSignOut}>
+                  <LogOut className="size-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <AppMobileNav email={email} navLinks={navLinks} onSignOut={handleSignOut} />
         </div>

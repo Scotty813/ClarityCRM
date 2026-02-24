@@ -4,7 +4,9 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { adminSupabase } from "@/lib/supabase/admin";
-import { getActiveOrganization } from "@/lib/supabase/active-org";
+import { tryAuthorize } from "@/lib/supabase/authorize";
+import { can } from "@/lib/permissions";
+import { resolveOrigin } from "@/lib/utils";
 import type { MemberRole } from "@/lib/types/database";
 
 const MEMBER_ROLES: MemberRole[] = ["owner", "admin", "member"];
@@ -15,44 +17,36 @@ function isMemberRole(value: unknown): value is MemberRole {
 
 async function getAppOrigin() {
   const requestHeaders = await headers();
-  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
-
-  if (!host) {
-    return null;
-  }
-
-  const forwardedProto = requestHeaders.get("x-forwarded-proto");
-  const protocol =
-    forwardedProto ??
-    (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
-  return `${protocol}://${host}`;
+  return resolveOrigin(requestHeaders);
 }
 
-export async function inviteUser(email: string, role: MemberRole) {
+export async function inviteUser(
+  email: string,
+  role: MemberRole,
+  firstName?: string,
+  lastName?: string,
+) {
   const supabase = await createClient();
-  const { orgId, userId } = await getActiveOrganization();
 
-  // Check caller's role — must be owner or admin
-  const { data: callerMembership } = await supabase
-    .from("organization_users")
-    .select("role")
-    .eq("organization_id", orgId)
-    .eq("user_id", userId)
-    .single();
-
-  if (!callerMembership || callerMembership.role === "member") {
-    return { success: false, error: "You don't have permission to invite users" };
+  const result = await tryAuthorize("member:invite");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
   }
+
+  const { orgId } = result.context;
 
   // Only owners can assign the owner role
-  if (role === "owner" && callerMembership.role !== "owner") {
+  if (role === "owner" && !can(result.context.role, "member:edit-role")) {
     return { success: false, error: "Only owners can assign the owner role" };
   }
+
+  const trimmedFirst = firstName?.trim() || null;
+  const trimmedLast = lastName?.trim() || null;
 
   // Check if user already exists
   const { data: existingProfile } = await adminSupabase
     .from("profiles")
-    .select("id")
+    .select("id, first_name")
     .eq("email", email)
     .maybeSingle();
 
@@ -82,7 +76,15 @@ export async function inviteUser(email: string, role: MemberRole) {
       return { success: false, error: insertError.message };
     }
 
-    revalidatePath("/users");
+    // Backfill name if the existing user doesn't have one yet
+    if ((trimmedFirst || trimmedLast) && !existingProfile.first_name) {
+      await adminSupabase
+        .from("profiles")
+        .update({ first_name: trimmedFirst, last_name: trimmedLast })
+        .eq("id", existingProfile.id);
+    }
+
+    revalidatePath("/settings/team");
     return { success: true };
   }
 
@@ -95,6 +97,8 @@ export async function inviteUser(email: string, role: MemberRole) {
       data: {
         invited_to_org: orgId,
         invited_role: role,
+        ...(trimmedFirst ? { first_name: trimmedFirst } : {}),
+        ...(trimmedLast ? { last_name: trimmedLast } : {}),
       },
     }
   );
@@ -103,7 +107,7 @@ export async function inviteUser(email: string, role: MemberRole) {
     return { success: false, error: inviteError.message };
   }
 
-  revalidatePath("/users");
+  revalidatePath("/settings/team");
   return { success: true };
 }
 

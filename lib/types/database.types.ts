@@ -14,6 +14,374 @@ export type Database = {
   }
   public: {
     Tables: {
+      companies: {
+        Row: {
+          address_line1: string | null
+          address_line2: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          created_by: string
+          domain: string | null
+          id: string
+          industry: string | null
+          lifecycle_stage: Database["public"]["Enums"]["lifecycle_stage"]
+          name: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          phone: string | null
+          postal_code: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by: string
+          domain?: string | null
+          id?: string
+          industry?: string | null
+          lifecycle_stage?: Database["public"]["Enums"]["lifecycle_stage"]
+          name: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address_line1?: string | null
+          address_line2?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          created_by?: string
+          domain?: string | null
+          id?: string
+          industry?: string | null
+          lifecycle_stage?: Database["public"]["Enums"]["lifecycle_stage"]
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          phone?: string | null
+          postal_code?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "companies_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "companies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_tags: {
+        Row: {
+          company_id: string
+          tag_id: string
+        }
+        Insert: {
+          company_id: string
+          tag_id: string
+        }
+        Update: {
+          company_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_tags_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contacts: {
+        Row: {
+          company_id: string | null
+          created_at: string
+          created_by: string
+          email: string | null
+          first_name: string
+          id: string
+          job_title: string | null
+          last_name: string
+          notes: string | null
+          organization_id: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          email?: string | null
+          first_name: string
+          id?: string
+          job_title?: string | null
+          last_name: string
+          notes?: string | null
+          organization_id: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          email?: string | null
+          first_name?: string
+          id?: string
+          job_title?: string | null
+          last_name?: string
+          notes?: string | null
+          organization_id?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contacts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contacts_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_activities: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          content: string | null
+          created_at: string
+          created_by: string
+          deal_id: string
+          id: string
+          metadata: Json | null
+          organization_id: string
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["deal_activity_type"]
+          content?: string | null
+          created_at?: string
+          created_by: string
+          deal_id: string
+          id?: string
+          metadata?: Json | null
+          organization_id: string
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["deal_activity_type"]
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          id?: string
+          metadata?: Json | null
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_activities_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_activities_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deal_tasks: {
+        Row: {
+          completed: boolean
+          created_at: string
+          created_by: string
+          deal_id: string
+          due_date: string | null
+          id: string
+          organization_id: string
+          title: string
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          created_by: string
+          deal_id: string
+          due_date?: string | null
+          id?: string
+          organization_id: string
+          title: string
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          created_by?: string
+          deal_id?: string
+          due_date?: string | null
+          id?: string
+          organization_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deal_tasks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_tasks_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deal_tasks_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deals: {
+        Row: {
+          company_id: string | null
+          contact_id: string | null
+          created_at: string
+          created_by: string
+          expected_close_date: string | null
+          id: string
+          lost_reason: string | null
+          name: string
+          notes: string | null
+          organization_id: string
+          owner_id: string | null
+          position: number
+          stage: Database["public"]["Enums"]["deal_stage"]
+          updated_at: string
+          value: number | null
+        }
+        Insert: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by: string
+          expected_close_date?: string | null
+          id?: string
+          lost_reason?: string | null
+          name: string
+          notes?: string | null
+          organization_id: string
+          owner_id?: string | null
+          position?: number
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Update: {
+          company_id?: string | null
+          contact_id?: string | null
+          created_at?: string
+          created_by?: string
+          expected_close_date?: string | null
+          id?: string
+          lost_reason?: string | null
+          name?: string
+          notes?: string | null
+          organization_id?: string
+          owner_id?: string | null
+          position?: number
+          stage?: Database["public"]["Enums"]["deal_stage"]
+          updated_at?: string
+          value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deals_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deals_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_users: {
         Row: {
           created_at: string
@@ -92,8 +460,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           email: string | null
+          first_name: string | null
           full_name: string | null
           id: string
+          last_name: string | null
           onboarding_completed: boolean
           onboarding_step: number
           selected_path: string | null
@@ -104,8 +474,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id: string
+          last_name?: string | null
           onboarding_completed?: boolean
           onboarding_step?: number
           selected_path?: string | null
@@ -116,8 +488,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           email?: string | null
+          first_name?: string | null
           full_name?: string | null
           id?: string
+          last_name?: string | null
           onboarding_completed?: boolean
           onboarding_step?: number
           selected_path?: string | null
@@ -133,6 +507,38 @@ export type Database = {
           },
         ]
       }
+      tags: {
+        Row: {
+          color: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -141,6 +547,9 @@ export type Database = {
       is_member_of: { Args: { org_id: string }; Returns: boolean }
     }
     Enums: {
+      deal_activity_type: "note" | "stage_change" | "call" | "email" | "meeting"
+      deal_stage: "qualified" | "proposal" | "negotiation" | "won" | "lost"
+      lifecycle_stage: "lead" | "prospect" | "customer" | "churned" | "partner"
       member_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
@@ -269,6 +678,9 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      deal_activity_type: ["note", "stage_change", "call", "email", "meeting"],
+      deal_stage: ["qualified", "proposal", "negotiation", "won", "lost"],
+      lifecycle_stage: ["lead", "prospect", "customer", "churned", "partner"],
       member_role: ["owner", "admin", "member"],
     },
   },

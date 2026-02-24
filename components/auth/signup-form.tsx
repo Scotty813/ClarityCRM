@@ -1,44 +1,63 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { useAuthModal } from "./auth-modal-context";
+import { zodResolverCompat } from "@/lib/validations/resolver";
+import { signupFormSchema, type SignupFormValues } from "@/lib/validations/auth";
 
 export function SignupForm() {
   const { switchMode, setConfirmed } = useAuthModal();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  const form = useForm<SignupFormValues>({
+    resolver: zodResolverCompat(signupFormSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      password: "",
+    },
+  });
+
+  async function onSubmit(values: SignupFormValues) {
     setError(null);
-    setLoading(true);
+
+    const firstName = values.first_name.trim() || undefined;
+    const lastName = values.last_name.trim() || undefined;
 
     const supabase = createClient();
     const { error } = await supabase.auth.signUp({
-      email,
-      password,
+      email: values.email,
+      password: values.password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: firstName || lastName
+          ? { first_name: firstName, last_name: lastName }
+          : undefined,
       },
     });
 
     if (error) {
       setError(error.message);
-      setLoading(false);
       return;
     }
 
     setSuccess(true);
     setConfirmed(true);
-    setLoading(false);
   }
 
   async function handleGoogleSignIn() {
@@ -57,8 +76,9 @@ export function SignupForm() {
         <div>
           <p className="text-2xl font-semibold">Check your email</p>
           <p className="mt-2 text-sm text-muted-foreground">
-            We sent a confirmation link to <strong>{email}</strong>. Click the
-            link to activate your account.
+            We sent a confirmation link to{" "}
+            <strong>{form.getValues("email")}</strong>. Click the link to
+            activate your account.
           </p>
         </div>
         <p className="text-sm text-muted-foreground">
@@ -77,45 +97,86 @@ export function SignupForm() {
 
   return (
     <div className="grid gap-4">
-      <form onSubmit={handleSubmit} className="grid gap-4">
-        <div className="grid gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="you@example.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            placeholder="••••••••"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            minLength={6}
-          />
-        </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="first_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Jane" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="last_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Doe" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        {error && (
-          <p className="text-sm text-destructive" role="alert">
-            {error}
-          </p>
-        )}
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email <span className="text-destructive">*</span></FormLabel>
+                <FormControl>
+                  <Input
+                    type="email"
+                    placeholder="you@example.com"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <Button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-full bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground hover:opacity-90"
-        >
-          {loading ? "Creating account..." : "Create account"}
-        </Button>
-      </form>
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Password <span className="text-destructive">*</span></FormLabel>
+                <FormControl>
+                  <Input type="password" placeholder="••••••••" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {error && (
+            <p className="text-sm text-destructive" role="alert">
+              {error}
+            </p>
+          )}
+
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting}
+            className="w-full rounded-full bg-gradient-to-r from-gradient-from to-gradient-to text-primary-foreground hover:opacity-90"
+          >
+            {form.formState.isSubmitting
+              ? "Creating account..."
+              : "Create account"}
+          </Button>
+        </form>
+      </Form>
 
       <div className="relative flex items-center">
         <Separator className="flex-1" />

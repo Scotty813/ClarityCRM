@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { getInitials } from "@/lib/utils";
+import { usePermissions } from "@/lib/hooks/use-permissions";
 import { UserDetailDialog } from "./user-detail-dialog";
 import { InviteUserDialog } from "./invite-user-dialog";
 import type { MemberRole, OrgUser } from "@/lib/types/database";
@@ -31,8 +32,10 @@ interface UsersTableProps {
 }
 
 export function UsersTable({ users, orgName }: UsersTableProps) {
+  const { can } = usePermissions();
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
+  const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
 
   const query = search.toLowerCase();
@@ -48,16 +51,18 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">Users</h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Team members</h1>
             <p className="text-sm text-muted-foreground">
-              {users.length} {users.length === 1 ? "user" : "users"} in{" "}
+              {users.length} {users.length === 1 ? "member" : "members"} in{" "}
               {orgName}
             </p>
           </div>
-          <Button onClick={() => setInviteOpen(true)}>
-            <UserPlus className="mr-1.5 size-4" />
-            Invite User
-          </Button>
+          {can("member:invite") && (
+            <Button onClick={() => setInviteOpen(true)}>
+              <UserPlus className="mr-1.5 size-4" />
+              Invite User
+            </Button>
+          )}
         </div>
 
         {/* Search */}
@@ -91,7 +96,10 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
                   <TableRow
                     key={user.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => setSelectedUser(user)}
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setUserDetailOpen(true);
+                    }}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -138,8 +146,9 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
       </div>
 
       <UserDetailDialog
+        open={userDetailOpen}
+        onOpenChange={setUserDetailOpen}
         user={selectedUser}
-        onClose={() => setSelectedUser(null)}
       />
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
