@@ -36,7 +36,7 @@ export function OrgCreationForm() {
         teamSize: teamSize || undefined,
         industry: industry || undefined,
       });
-      router.push("/onboarding/setup");
+      router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);

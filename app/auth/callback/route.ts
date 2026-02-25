@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         }
       }
 
-      return NextResponse.redirect(`${origin}/onboarding/welcome`);
+      return NextResponse.redirect(`${origin}/onboarding/organization`);
     }
   }
 

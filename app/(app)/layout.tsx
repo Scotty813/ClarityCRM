@@ -25,7 +25,7 @@ export default async function AppLayout({
     .single();
 
   if (!profile?.onboarding_completed) {
-    redirect("/onboarding/welcome");
+    redirect("/onboarding/organization");
   }
 
   // Fetch user's org memberships

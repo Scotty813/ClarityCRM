@@ -42,7 +42,7 @@ export function LoginForm() {
       .single();
 
     close();
-    router.push(profile?.onboarding_completed ? "/dashboard" : "/onboarding/welcome");
+    router.push(profile?.onboarding_completed ? "/dashboard" : "/onboarding/organization");
     router.refresh();
   }
 

@@ -1,24 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useTransition } from "react";
+import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { dismissGettingStarted } from "@/lib/actions/dashboard";
 
-const checklistItems = [
-  { id: "account", label: "Create account", done: true },
-  { id: "workspace", label: "Set up workspace", done: true },
-  { id: "contact", label: "Add first contact", done: false },
-  { id: "pipeline", label: "Create pipeline", done: false },
-  { id: "invite", label: "Invite teammate", done: false },
-] as const;
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  done: boolean;
+  href?: string;
+}
 
-export function OnboardingChecklist() {
-  const [dismissed, setDismissed] = useState(false);
+interface OnboardingChecklistProps {
+  items: ChecklistItem[];
+  dismissed: boolean;
+}
+
+export function OnboardingChecklist({ items, dismissed }: OnboardingChecklistProps) {
+  const [isPending, startTransition] = useTransition();
 
   if (dismissed) return null;
 
-  const completedCount = checklistItems.filter((i) => i.done).length;
+  const completedCount = items.filter((i) => i.done).length;
+
+  function handleDismiss() {
+    startTransition(async () => {
+      await dismissGettingStarted();
+    });
+  }
 
   return (
     <div className="rounded-xl border border-border bg-card p-6">
@@ -26,12 +37,13 @@ export function OnboardingChecklist() {
         <div>
           <h3 className="font-semibold">Getting started</h3>
           <p className="mt-1 text-sm text-muted-foreground">
-            {completedCount} of {checklistItems.length} complete
+            {completedCount} of {items.length} complete
           </p>
         </div>
         <button
           type="button"
-          onClick={() => setDismissed(true)}
+          onClick={handleDismiss}
+          disabled={isPending}
           className="text-muted-foreground hover:text-foreground transition-colors"
           aria-label="Dismiss checklist"
         >
@@ -43,13 +55,13 @@ export function OnboardingChecklist() {
         <div
           className="h-full rounded-full bg-primary transition-all"
           style={{
-            width: `${(completedCount / checklistItems.length) * 100}%`,
+            width: `${(completedCount / items.length) * 100}%`,
           }}
         />
       </div>
 
       <ul className="mt-5 grid gap-3">
-        {checklistItems.map((item) => (
+        {items.map((item) => (
           <li key={item.id} className="flex items-center gap-3">
             <div
               className={cn(
@@ -61,23 +73,28 @@ export function OnboardingChecklist() {
             >
               {item.done && <Check className="size-3" />}
             </div>
-            <span
-              className={cn(
-                "text-sm",
-                item.done
-                  ? "text-muted-foreground line-through"
-                  : "text-foreground"
-              )}
-            >
-              {item.label}
-            </span>
+            {!item.done && item.href ? (
+              <Link
+                href={item.href}
+                className="text-sm text-foreground hover:underline"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <span
+                className={cn(
+                  "text-sm",
+                  item.done
+                    ? "text-muted-foreground line-through"
+                    : "text-foreground"
+                )}
+              >
+                {item.label}
+              </span>
+            )}
           </li>
         ))}
       </ul>
-
-      <Button variant="outline" size="sm" className="mt-5 w-full" disabled>
-        Add sample data
-      </Button>
     </div>
   );
 }
