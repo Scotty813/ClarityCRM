@@ -50,6 +50,22 @@ vi.mock("@hello-pangea/dnd", () => ({
     ),
 }));
 
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+    [key: string]: unknown;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
 const mockMoveDeal = vi.fn();
 vi.mock("@/lib/actions/deals", () => ({
   moveDeal: (...args: unknown[]) => mockMoveDeal(...args),
@@ -96,8 +112,8 @@ const DEALS: DealWithRelations[] = [
   makeDeal({ id: "d4", name: "Delta Co", stage: "negotiation", value: null, position: 0 }),
 ];
 
-function fireDragEnd(result: Partial<DropResult>) {
-  act(() => {
+async function fireDragEnd(result: Partial<DropResult>) {
+  await act(async () => {
     capturedOnDragEnd?.({
       draggableId: "",
       type: "DEFAULT",
@@ -108,6 +124,7 @@ function fireDragEnd(result: Partial<DropResult>) {
       destination: null,
       ...result,
     } as DropResult);
+    await Promise.resolve();
   });
 }
 
@@ -168,9 +185,9 @@ describe("DealsKanban", () => {
     expect(noDealTexts.length).toBe(5);
   });
 
-  it("ignores no-op drag (same column, same index)", () => {
+  it("ignores no-op drag (same column, same index)", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "qualified", index: 0 },
@@ -178,9 +195,9 @@ describe("DealsKanban", () => {
     expect(mockMoveDeal).not.toHaveBeenCalled();
   });
 
-  it("ignores drag with no destination", () => {
+  it("ignores drag with no destination", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: null,
@@ -190,7 +207,7 @@ describe("DealsKanban", () => {
 
   it("calls moveDeal when reordering within the same column", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d2",
       source: { droppableId: "qualified", index: 1 },
       destination: { droppableId: "qualified", index: 0 },
@@ -204,7 +221,7 @@ describe("DealsKanban", () => {
 
   it("calls moveDeal when dragging to a non-terminal stage", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "proposal", index: 0 },
@@ -216,9 +233,9 @@ describe("DealsKanban", () => {
     });
   });
 
-  it("opens close dialog instead of moving when dragging to 'won'", () => {
+  it("opens close dialog instead of moving when dragging to 'won'", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "won", index: 0 },
@@ -228,9 +245,9 @@ describe("DealsKanban", () => {
     expect(screen.getByText("Close Deal as Won")).toBeInTheDocument();
   });
 
-  it("opens close dialog when dragging to 'lost'", () => {
+  it("opens close dialog when dragging to 'lost'", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "lost", index: 0 },
@@ -243,7 +260,7 @@ describe("DealsKanban", () => {
   it("shows error toast when moveDeal fails", async () => {
     mockMoveDeal.mockResolvedValue({ success: false, error: "Server error" });
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "proposal", index: 0 },
@@ -256,7 +273,7 @@ describe("DealsKanban", () => {
 
   it("shows success toast on stage change", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d1",
       source: { droppableId: "qualified", index: 0 },
       destination: { droppableId: "proposal", index: 0 },
@@ -269,7 +286,7 @@ describe("DealsKanban", () => {
 
   it("does not show success toast on reorder within same column", async () => {
     render(<DealsKanban deals={DEALS} />);
-    fireDragEnd({
+    await fireDragEnd({
       draggableId: "d2",
       source: { droppableId: "qualified", index: 1 },
       destination: { droppableId: "qualified", index: 0 },
