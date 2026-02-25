@@ -10,6 +10,7 @@ import { DealsKanban } from "./deals-kanban";
 import { DealsList } from "./deals-list";
 import { DealFilters, type DealFilterState } from "./deal-filters";
 import { CreateDealDialog } from "./create-deal-dialog";
+import { EditDealDialog } from "./edit-deal-dialog";
 import { DealDetailDrawer } from "./deal-detail-drawer";
 import type { DealWithRelations } from "@/lib/types/database";
 
@@ -62,6 +63,8 @@ export function DealsView({
   const [createOpen, setCreateOpen] = useState(false);
   const [filters, setFilters] = useState<DealFilterState>(EMPTY_FILTERS);
   const [selectedDealId, setSelectedDealId] = useState<string | null>(null);
+  const [editingDealId, setEditingDealId] = useState<string | null>(null);
+  const editingDeal = deals.find((d) => d.id === editingDealId);
 
   const filtered = useMemo(() => {
     return deals.filter((deal) => {
@@ -177,6 +180,7 @@ export function DealsView({
             <DealsList
               deals={filtered}
               onDealSelect={setSelectedDealId}
+              onEditDeal={setEditingDealId}
             />
           </TabsContent>
         </Tabs>
@@ -189,6 +193,19 @@ export function DealsView({
         companies={companies}
         members={members}
       />
+
+      {editingDeal && (
+        <EditDealDialog
+          open={!!editingDealId}
+          onOpenChange={(open) => {
+            if (!open) setEditingDealId(null);
+          }}
+          deal={editingDeal}
+          contacts={contacts}
+          companies={companies}
+          members={members}
+        />
+      )}
 
       <DealDetailDrawer
         dealId={selectedDealId}

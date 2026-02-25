@@ -31,11 +31,13 @@ import type { CompanyWithRelations } from "@/lib/types/database";
 interface CompaniesTableProps {
   companies: CompanyWithRelations[];
   onCompanySelect: (companyId: string) => void;
+  onEditCompany: (companyId: string) => void;
 }
 
 export function CompaniesTable({
   companies,
   onCompanySelect,
+  onEditCompany,
 }: CompaniesTableProps) {
   const { can } = usePermissions();
 
@@ -209,7 +211,7 @@ export function CompaniesTable({
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          onCompanySelect(company.id);
+                          onEditCompany(company.id);
                         }}
                       >
                         <Pencil className="mr-2 size-4" />
