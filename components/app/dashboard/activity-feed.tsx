@@ -1,6 +1,10 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ACTIVITY_ICONS, ACTIVITY_TYPE_LABELS } from "@/lib/deals";
+import {
+  ACTIVITY_ICONS,
+  ACTIVITY_ICON_COLORS,
+  ACTIVITY_TYPE_LABELS,
+} from "@/lib/deals";
 import { formatRelativeTime } from "@/lib/format";
 import type { DashboardActivity } from "@/lib/dashboard";
 
@@ -14,10 +18,10 @@ export function ActivityFeed({
   if (items.length === 0) {
     return (
       <Card className="h-full">
-        <CardHeader>
+        <CardHeader className="border-b">
           <CardTitle>Recent Activity</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <p className="text-sm text-muted-foreground">
             No activity yet. Activity will appear here as you work on deals.
           </p>
@@ -28,13 +32,14 @@ export function ActivityFeed({
 
   return (
     <Card className="h-full">
-      <CardHeader>
+      <CardHeader className="border-b">
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-4">
+      <CardContent className="grid gap-4 pt-6">
         {items.map((activity) => {
           const Icon = ACTIVITY_ICONS[activity.activity_type];
           const label = ACTIVITY_TYPE_LABELS[activity.activity_type];
+          const colors = ACTIVITY_ICON_COLORS[activity.activity_type];
 
           return (
             <Link
@@ -42,8 +47,8 @@ export function ActivityFeed({
               href={`/deals/${activity.deal_id}`}
               className="group flex items-start gap-3"
             >
-              <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-muted">
-                {Icon && <Icon className="size-3.5 text-muted-foreground" />}
+              <div className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full ${colors?.bg ?? "bg-muted"}`}>
+                {Icon && <Icon className={`size-3.5 ${colors?.text ?? "text-muted-foreground"}`} />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">

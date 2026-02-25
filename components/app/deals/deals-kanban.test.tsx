@@ -285,7 +285,11 @@ describe("DealsKanban", () => {
     const onDealSelect = vi.fn();
     render(<DealsKanban deals={DEALS} onDealSelect={onDealSelect} />);
 
-    await userEvent.click(screen.getByText("Acme Corp"));
+    // Click on a non-link area of the card — the deal name is wrapped in a
+    // <Link> with stopPropagation, so clicking it navigates instead of
+    // triggering the Card's onClick.
+    const card = screen.getByTestId("draggable-d1");
+    await userEvent.click(within(card).getByText("No next step"));
     expect(onDealSelect).toHaveBeenCalledWith("d1");
   });
 });

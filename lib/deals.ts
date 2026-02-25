@@ -40,6 +40,20 @@ export const ACTIVITY_ICONS: Record<string, LucideIcon> = {
   stage_change: ArrowRight,
 };
 
+export const ACTIVITY_ICON_COLORS: Record<
+  string,
+  { bg: string; text: string }
+> = {
+  note: { bg: "bg-activity-note/10", text: "text-activity-note" },
+  call: { bg: "bg-activity-call/10", text: "text-activity-call" },
+  email: { bg: "bg-activity-email/10", text: "text-activity-email" },
+  meeting: { bg: "bg-activity-meeting/10", text: "text-activity-meeting" },
+  stage_change: {
+    bg: "bg-activity-stage-change/10",
+    text: "text-activity-stage-change",
+  },
+};
+
 export const STAGE_BADGE_COLORS: Record<DealStage, string> = {
   qualified: "",
   proposal: "bg-blue-500/10 text-blue-600 dark:text-blue-400",

@@ -12,9 +12,9 @@ import type { PipelineStageData } from "@/lib/dashboard";
 
 const chartConfig = {
   value: { label: "Value" },
-  qualified: { label: "Qualified", color: "hsl(var(--chart-1))" },
-  proposal: { label: "Proposal", color: "hsl(var(--chart-2))" },
-  negotiation: { label: "Negotiation", color: "hsl(var(--chart-3))" },
+  qualified: { label: "Qualified", color: "var(--chart-1)" },
+  proposal: { label: "Proposal", color: "var(--chart-2)" },
+  negotiation: { label: "Negotiation", color: "var(--chart-3)" },
 } satisfies ChartConfig;
 
 function CustomTooltip({
@@ -60,10 +60,10 @@ export function PipelineChart({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="border-b">
         <CardTitle>Pipeline Breakdown</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <ChartContainer config={chartConfig} className="h-[150px] w-full">
           <BarChart data={data} layout="vertical" barCategoryGap="20%">
             <XAxis type="number" hide />
