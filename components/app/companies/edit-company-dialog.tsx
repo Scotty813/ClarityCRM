@@ -12,82 +12,68 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { createCompany } from "@/lib/actions/companies";
+import { updateCompany } from "@/lib/actions/companies";
 import { zodResolverCompat } from "@/lib/validations/resolver";
 import {
   companyFormSchema,
   type CompanyFormValues,
 } from "@/lib/validations/company";
 import { CompanyFormFields } from "./company-form-fields";
+import type { CompanyWithRelations } from "@/lib/types/database";
 
 interface SelectOption {
   id: string;
   name: string;
 }
 
-interface CreateCompanyDialogProps {
+interface EditCompanyDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  members?: SelectOption[];
-  currentUserId: string;
+  company: CompanyWithRelations;
+  members: SelectOption[];
 }
 
-export function CreateCompanyDialog({
+export function EditCompanyDialog({
   open,
   onOpenChange,
-  members = [],
-  currentUserId,
-}: CreateCompanyDialogProps) {
-  const defaults: CompanyFormValues = {
-    name: "",
-    domain: "",
-    industry: "",
-    phone: "",
-    address_line1: "",
-    address_line2: "",
-    city: "",
-    state: "",
-    postal_code: "",
-    country: "",
-    notes: "",
-    owner_id: currentUserId,
-    lifecycle_stage: "lead",
-  };
-
+  company,
+  members,
+}: EditCompanyDialogProps) {
   const form = useForm<CompanyFormValues>({
     resolver: zodResolverCompat(companyFormSchema),
-    defaultValues: defaults,
+    defaultValues: {
+      name: company.name,
+      domain: company.domain ?? "",
+      industry: company.industry ?? "",
+      phone: company.phone ?? "",
+      address_line1: company.address_line1 ?? "",
+      address_line2: company.address_line2 ?? "",
+      city: company.city ?? "",
+      state: company.state ?? "",
+      postal_code: company.postal_code ?? "",
+      country: company.country ?? "",
+      notes: company.notes ?? "",
+      owner_id: company.owner_id ?? "",
+      lifecycle_stage: company.lifecycle_stage,
+    },
   });
 
   async function onSubmit(values: CompanyFormValues) {
-    try {
-      const result = await createCompany(values);
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      toast.success("Company created");
-      form.reset(defaults);
-      onOpenChange(false);
-    } catch {
-      toast.error("Something went wrong");
+    const result = await updateCompany(company.id, values);
+    if (!result.success) {
+      toast.error(result.error);
+      return;
     }
+    toast.success("Company updated");
+    onOpenChange(false);
   }
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(v) => {
-        if (!v) form.reset(defaults);
-        onOpenChange(v);
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Add Company</DialogTitle>
-          <DialogDescription>Add a new company to your CRM.</DialogDescription>
+          <DialogTitle>Edit Company</DialogTitle>
+          <DialogDescription>Update company details.</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -103,9 +89,7 @@ export function CreateCompanyDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting
-                  ? "Creating..."
-                  : "Create Company"}
+                {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
               </Button>
             </DialogFooter>
           </form>
