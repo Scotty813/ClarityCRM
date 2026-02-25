@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import {
   Sheet,
@@ -123,7 +124,11 @@ function DrawerContent({ companyId }: { companyId: string }) {
     <>
       <SheetHeader className="border-b px-6 py-4">
         <div className="flex items-center gap-3">
-          <SheetTitle className="truncate text-lg">{company.name}</SheetTitle>
+          <SheetTitle className="truncate text-lg">
+            <Link href={`/companies/${company.id}`} className="hover:underline">
+              {company.name}
+            </Link>
+          </SheetTitle>
           <Badge
             variant="secondary"
             className={cn(

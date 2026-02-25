@@ -47,6 +47,7 @@ export async function addCompanyTag(companyId: string, tagId: string) {
   }
 
   revalidatePath("/companies");
+  revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }
 
@@ -67,5 +68,6 @@ export async function removeCompanyTag(companyId: string, tagId: string) {
   if (error) return { success: false, error: error.message };
 
   revalidatePath("/companies");
+  revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }

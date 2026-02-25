@@ -6,42 +6,34 @@ import { ArrowLeft, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/lib/hooks/use-permissions";
-import { deleteDeal } from "@/lib/actions/deals";
-import { EditDealDialog } from "./edit-deal-dialog";
-import type { DealWithRelations } from "@/lib/types/database";
+import { deleteCompany } from "@/lib/actions/companies";
+import { EditCompanyDialog } from "./edit-company-dialog";
+import type { CompanyWithRelations } from "@/lib/types/database";
 
 interface SelectOption {
   id: string;
   name: string;
-  company_id?: string | null;
 }
 
-interface DealHeaderProps {
-  deal: DealWithRelations;
-  contacts: SelectOption[];
-  companies: SelectOption[];
+interface CompanyHeaderProps {
+  company: CompanyWithRelations;
   members: SelectOption[];
 }
 
-export function DealHeader({
-  deal,
-  contacts,
-  companies,
-  members,
-}: DealHeaderProps) {
+export function CompanyHeader({ company, members }: CompanyHeaderProps) {
   const router = useRouter();
   const { can } = usePermissions();
   const [editOpen, setEditOpen] = useState(false);
 
   async function handleDelete() {
-    if (!confirm(`Delete "${deal.name}"? This cannot be undone.`)) return;
+    if (!confirm(`Delete "${company.name}"? This cannot be undone.`)) return;
 
-    const result = await deleteDeal(deal.id);
+    const result = await deleteCompany(company.id);
     if (!result.success) {
       toast.error(result.error);
     } else {
-      toast.success("Deal deleted");
-      router.push("/deals");
+      toast.success("Company deleted");
+      router.push("/companies");
     }
   }
 
@@ -52,16 +44,16 @@ export function DealHeader({
           <Button
             variant="ghost"
             size="icon-sm"
-            onClick={() => router.push("/deals")}
+            onClick={() => router.push("/companies")}
           >
             <ArrowLeft className="size-4" />
           </Button>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {deal.name}
+            {company.name}
           </h1>
         </div>
         <div className="flex items-center gap-2">
-          {can("deal:edit") && (
+          {can("company:edit") && (
             <Button
               variant="outline"
               size="sm"
@@ -71,7 +63,7 @@ export function DealHeader({
               Edit
             </Button>
           )}
-          {can("deal:delete") && (
+          {can("company:delete") && (
             <Button variant="outline" size="sm" onClick={handleDelete} className="border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive">
               <Trash2 className="mr-1.5 size-3.5" />
               Delete
@@ -80,12 +72,10 @@ export function DealHeader({
         </div>
       </div>
 
-      <EditDealDialog
+      <EditCompanyDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        deal={deal}
-        contacts={contacts}
-        companies={companies}
+        company={company}
         members={members}
       />
     </>

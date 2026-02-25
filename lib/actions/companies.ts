@@ -70,6 +70,7 @@ export async function updateCompany(companyId: string, data: CompanyFormData) {
   if (error) return { success: false, error: error.message };
 
   revalidatePath("/companies");
+  revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }
 
@@ -95,6 +96,7 @@ export async function updateCompanyField(
   if (error) return { success: false, error: error.message };
 
   revalidatePath("/companies");
+  revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }
 
@@ -116,5 +118,6 @@ export async function deleteCompany(companyId: string) {
   if (error) return { success: false, error: error.message };
 
   revalidatePath("/companies");
+  revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }

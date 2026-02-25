@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Building2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -92,7 +93,13 @@ export function CompaniesTable({
                     <Building2 className="size-4" />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate font-medium">{company.name}</p>
+                    <Link
+                      href={`/companies/${company.id}`}
+                      className="truncate font-medium hover:underline"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {company.name}
+                    </Link>
                     {(company.domain || company.industry) && (
                       <p className="truncate text-xs text-muted-foreground">
                         {[company.domain, company.industry]
