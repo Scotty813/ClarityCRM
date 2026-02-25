@@ -62,9 +62,9 @@ export interface DashboardData {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  qualified: "hsl(var(--chart-1))",
-  proposal: "hsl(var(--chart-2))",
-  negotiation: "hsl(var(--chart-3))",
+  qualified: "var(--chart-1)",
+  proposal: "var(--chart-2)",
+  negotiation: "var(--chart-3)",
 };
 
 export function getPipelineChartData(

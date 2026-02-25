@@ -32,7 +32,7 @@ vi.mock("@/components/ui/chart", () => ({
 describe("PipelineChart", () => {
   it("renders the card title", () => {
     const data = [
-      { stage: "Qualified", value: 10000, count: 2, fill: "hsl(var(--chart-1))" },
+      { stage: "Qualified", value: 10000, count: 2, fill: "var(--chart-1)" },
     ];
     render(<PipelineChart data={data} />);
 
@@ -50,9 +50,9 @@ describe("PipelineChart", () => {
 
   it("renders empty state when all values are 0", () => {
     const data = [
-      { stage: "Qualified", value: 0, count: 0, fill: "hsl(var(--chart-1))" },
-      { stage: "Proposal", value: 0, count: 0, fill: "hsl(var(--chart-2))" },
-      { stage: "Negotiation", value: 0, count: 0, fill: "hsl(var(--chart-3))" },
+      { stage: "Qualified", value: 0, count: 0, fill: "var(--chart-1)" },
+      { stage: "Proposal", value: 0, count: 0, fill: "var(--chart-2)" },
+      { stage: "Negotiation", value: 0, count: 0, fill: "var(--chart-3)" },
     ];
 
     render(<PipelineChart data={data} />);
@@ -64,7 +64,7 @@ describe("PipelineChart", () => {
 
   it("renders chart container when data has non-zero values", () => {
     const data = [
-      { stage: "Qualified", value: 50000, count: 3, fill: "hsl(var(--chart-1))" },
+      { stage: "Qualified", value: 50000, count: 3, fill: "var(--chart-1)" },
     ];
 
     render(<PipelineChart data={data} />);
@@ -77,9 +77,9 @@ describe("PipelineChart", () => {
 
   it("does not render empty state if at least one stage has a non-zero value", () => {
     const data = [
-      { stage: "Qualified", value: 0, count: 0, fill: "hsl(var(--chart-1))" },
-      { stage: "Proposal", value: 25000, count: 1, fill: "hsl(var(--chart-2))" },
-      { stage: "Negotiation", value: 0, count: 0, fill: "hsl(var(--chart-3))" },
+      { stage: "Qualified", value: 0, count: 0, fill: "var(--chart-1)" },
+      { stage: "Proposal", value: 25000, count: 1, fill: "var(--chart-2)" },
+      { stage: "Negotiation", value: 0, count: 0, fill: "var(--chart-3)" },
     ];
 
     render(<PipelineChart data={data} />);
@@ -109,19 +109,19 @@ describe("getPipelineChartData", () => {
       stage: "Qualified",
       value: 15000,
       count: 2,
-      fill: "hsl(var(--chart-1))",
+      fill: "var(--chart-1)",
     });
     expect(result[1]).toEqual({
       stage: "Proposal",
       value: 20000,
       count: 1,
-      fill: "hsl(var(--chart-2))",
+      fill: "var(--chart-2)",
     });
     expect(result[2]).toEqual({
       stage: "Negotiation",
       value: 30000,
       count: 1,
-      fill: "hsl(var(--chart-3))",
+      fill: "var(--chart-3)",
     });
   });
 
@@ -160,19 +160,19 @@ describe("getPipelineChartData", () => {
       stage: "Qualified",
       value: 0,
       count: 0,
-      fill: "hsl(var(--chart-1))",
+      fill: "var(--chart-1)",
     });
     expect(result[1]).toEqual({
       stage: "Proposal",
       value: 0,
       count: 0,
-      fill: "hsl(var(--chart-2))",
+      fill: "var(--chart-2)",
     });
     expect(result[2]).toEqual({
       stage: "Negotiation",
       value: 0,
       count: 0,
-      fill: "hsl(var(--chart-3))",
+      fill: "var(--chart-3)",
     });
   });
 
@@ -204,9 +204,9 @@ describe("getPipelineChartData", () => {
   it("assigns correct fill colors per stage", () => {
     const result = getPipelineChartData([]);
 
-    expect(result[0].fill).toBe("hsl(var(--chart-1))");
-    expect(result[1].fill).toBe("hsl(var(--chart-2))");
-    expect(result[2].fill).toBe("hsl(var(--chart-3))");
+    expect(result[0].fill).toBe("var(--chart-1)");
+    expect(result[1].fill).toBe("var(--chart-2)");
+    expect(result[2].fill).toBe("var(--chart-3)");
   });
 
   it("handles a large number of deals correctly", () => {

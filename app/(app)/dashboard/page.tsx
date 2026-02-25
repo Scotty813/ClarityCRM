@@ -6,20 +6,13 @@ import { DashboardEmptyState } from "@/components/app/dashboard/dashboard-empty-
 import { ActivityFeed } from "@/components/app/dashboard/activity-feed";
 import { TasksAlerts } from "@/components/app/dashboard/tasks-alerts";
 import { PipelineChart } from "@/components/app/dashboard/pipeline-chart";
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return "Good morning";
-  if (hour < 17) return "Good afternoon";
-  return "Good evening";
-}
+import { DashboardGreeting } from "@/components/app/dashboard/dashboard-greeting";
 
 export default async function DashboardPage() {
   const data = await getDashboardData();
   const hasDeals = data.deals.length > 0;
 
   const firstName = data.userName?.split(" ")[0] ?? null;
-  const greeting = getGreeting();
 
   const pipelineData = getPipelineChartData(data.deals);
   const staleDealData = getStaleDealData(data.deals, data.activities);
@@ -30,15 +23,7 @@ export default async function DashboardPage() {
         {/* Main column */}
         <div className="flex flex-col gap-8">
           {/* Greeting */}
-          <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {greeting}
-              {firstName ? `, ${firstName}` : ""}
-            </h1>
-            <p className="mt-1 text-muted-foreground">
-              Here&apos;s what&apos;s happening today.
-            </p>
-          </div>
+          <DashboardGreeting firstName={firstName} />
 
           {hasDeals ? (
             <>
