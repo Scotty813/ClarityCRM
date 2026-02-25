@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { usePermissions } from "@/lib/hooks/use-permissions";
@@ -84,6 +84,8 @@ export function CompaniesView({
   );
   const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
   const editingCompany = companies.find((c) => c.id === editingCompanyId);
+  const editingCompanyRef = useRef<CompanyWithRelations | undefined>(undefined);
+  if (editingCompany) editingCompanyRef.current = editingCompany;
 
   const filtered = useMemo(() => {
     const result = companies.filter((company) => {
@@ -184,13 +186,13 @@ export function CompaniesView({
         currentUserId={currentUserId}
       />
 
-      {editingCompany && (
+      {editingCompanyRef.current && (
         <EditCompanyDialog
           open={!!editingCompanyId}
           onOpenChange={(open) => {
             if (!open) setEditingCompanyId(null);
           }}
-          company={editingCompany}
+          company={editingCompanyRef.current}
           members={members}
         />
       )}

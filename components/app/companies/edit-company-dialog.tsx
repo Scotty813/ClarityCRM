@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import {
@@ -57,6 +58,24 @@ export function EditCompanyDialog({
       lifecycle_stage: company.lifecycle_stage,
     },
   });
+
+  useEffect(() => {
+    form.reset({
+      name: company.name,
+      domain: company.domain ?? "",
+      industry: company.industry ?? "",
+      phone: company.phone ?? "",
+      address_line1: company.address_line1 ?? "",
+      address_line2: company.address_line2 ?? "",
+      city: company.city ?? "",
+      state: company.state ?? "",
+      postal_code: company.postal_code ?? "",
+      country: company.country ?? "",
+      notes: company.notes ?? "",
+      owner_id: company.owner_id ?? "",
+      lifecycle_stage: company.lifecycle_stage,
+    });
+  }, [company.id]);
 
   async function onSubmit(values: CompanyFormValues) {
     const result = await updateCompany(company.id, values);
