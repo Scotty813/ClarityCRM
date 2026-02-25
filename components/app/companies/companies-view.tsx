@@ -8,6 +8,7 @@ import { isStale } from "@/lib/format";
 import { CompaniesTable } from "./companies-table";
 import { CompanyFilters } from "./company-filters";
 import { CreateCompanyDialog } from "./create-company-dialog";
+import { EditCompanyDialog } from "./edit-company-dialog";
 import { CompanyDetailDrawer } from "./company-detail-drawer";
 import type {
   CompanyWithRelations,
@@ -81,6 +82,8 @@ export function CompaniesView({
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
     null
   );
+  const [editingCompanyId, setEditingCompanyId] = useState<string | null>(null);
+  const editingCompany = companies.find((c) => c.id === editingCompanyId);
 
   const filtered = useMemo(() => {
     const result = companies.filter((company) => {
@@ -170,6 +173,7 @@ export function CompaniesView({
         <CompaniesTable
           companies={filtered}
           onCompanySelect={setSelectedCompanyId}
+          onEditCompany={setEditingCompanyId}
         />
       </div>
 
@@ -179,6 +183,17 @@ export function CompaniesView({
         members={members}
         currentUserId={currentUserId}
       />
+
+      {editingCompany && (
+        <EditCompanyDialog
+          open={!!editingCompanyId}
+          onOpenChange={(open) => {
+            if (!open) setEditingCompanyId(null);
+          }}
+          company={editingCompany}
+          members={members}
+        />
+      )}
 
       <CompanyDetailDrawer
         companyId={selectedCompanyId}

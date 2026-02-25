@@ -2,9 +2,16 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -13,6 +20,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { usePermissions } from "@/lib/hooks/use-permissions";
+import { deleteDeal } from "@/lib/actions/deals";
 import { STAGE_LABELS } from "@/lib/deals";
 import { formatRelativeTime, isStale, formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -21,6 +30,7 @@ import type { DealStage, DealWithRelations } from "@/lib/types/database";
 interface DealsListProps {
   deals: DealWithRelations[];
   onDealSelect?: (dealId: string) => void;
+  onEditDeal?: (dealId: string) => void;
 }
 
 type SortField = "value" | "expected_close_date" | "last_activity_at";
@@ -78,9 +88,22 @@ function SortButton({
   );
 }
 
-export function DealsList({ deals, onDealSelect }: DealsListProps) {
+export function DealsList({ deals, onDealSelect, onEditDeal }: DealsListProps) {
+  const { can } = usePermissions();
   const [sortField, setSortField] = useState<SortField | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+
+  async function handleDelete(e: React.MouseEvent, deal: DealWithRelations) {
+    e.stopPropagation();
+    if (!confirm(`Delete "${deal.name}"? This cannot be undone.`)) return;
+
+    const result = await deleteDeal(deal.id);
+    if (!result.success) {
+      toast.error(result.error);
+    } else {
+      toast.success("Deal deleted");
+    }
+  }
 
   function toggleSort(field: SortField) {
     if (sortField === field) {
@@ -153,6 +176,7 @@ export function DealsList({ deals, onDealSelect }: DealsListProps) {
             <TableHead>
               <SortButton field="last_activity_at" activeField={sortField} direction={sortDirection} onToggle={toggleSort}>Last activity</SortButton>
             </TableHead>
+            <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -239,6 +263,41 @@ export function DealsList({ deals, onDealSelect }: DealsListProps) {
                   >
                     {formatRelativeTime(deal.last_activity_at)}
                   </span>
+                </TableCell>
+                <TableCell>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon-xs"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {can("deal:edit") && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditDeal?.(deal.id);
+                          }}
+                        >
+                          <Pencil className="mr-2 size-4" />
+                          Edit
+                        </DropdownMenuItem>
+                      )}
+                      {can("deal:delete") && (
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={(e) => handleDelete(e, deal)}
+                        >
+                          <Trash2 className="mr-2 size-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             );
