@@ -27,6 +27,10 @@ describe("GET /auth/invite-callback", () => {
     });
   });
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("rejects non-invite token types", async () => {
     const request = new NextRequest(
       "http://localhost/auth/invite-callback?token_hash=abc&type=magiclink",
@@ -76,5 +80,16 @@ describe("GET /auth/invite-callback", () => {
     expect(response.headers.get("location")).toBe(
       "http://localhost/auth/invite-callback/client",
     );
+  });
+
+  it("uses NEXT_PUBLIC_SITE_URL when callback host is localhost", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://staging.example.com");
+    const request = new NextRequest(
+      "http://localhost/auth/invite-callback?token_hash=abc&type=invite",
+    );
+
+    const response = await GET(request);
+
+    expect(response.headers.get("location")).toBe("https://staging.example.com/auth/set-password");
   });
 });

@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { cn, resolveOrigin } from "@/lib/utils"
 
 describe("cn", () => {
@@ -20,6 +20,10 @@ function fakeHeaders(map: Record<string, string>) {
 }
 
 describe("resolveOrigin", () => {
+  beforeEach(() => {
+    delete process.env.NEXT_PUBLIC_SITE_URL
+  })
+
   afterEach(() => {
     vi.unstubAllEnvs()
   })
@@ -54,6 +58,20 @@ describe("resolveOrigin", () => {
   it("uses http for 127.0.0.1", () => {
     const headers = fakeHeaders({ host: "127.0.0.1:3000" })
     expect(resolveOrigin(headers)).toBe("http://127.0.0.1:3000")
+  })
+
+  it("uses NEXT_PUBLIC_SITE_URL when host resolves to localhost", () => {
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://app.example.com")
+    const headers = fakeHeaders({ host: "localhost:3000" })
+    expect(resolveOrigin(headers)).toBe("https://app.example.com")
+  })
+
+  it("uses first forwarded host/proto values", () => {
+    const headers = fakeHeaders({
+      "x-forwarded-host": "app.example.com,internal:3000",
+      "x-forwarded-proto": "https,http",
+    })
+    expect(resolveOrigin(headers)).toBe("https://app.example.com")
   })
 
   it("falls back to NEXT_PUBLIC_SITE_URL when no host headers", () => {

@@ -12,16 +12,24 @@ export function cn(...inputs: ClassValue[]) {
  * Priority: x-forwarded-host + x-forwarded-proto → host header → NEXT_PUBLIC_SITE_URL → null
  */
 export function resolveOrigin(headers: { get(name: string): string | null }): string | null {
-  const host = headers.get("x-forwarded-host") ?? headers.get("host");
+  const envOrigin = process.env.NEXT_PUBLIC_SITE_URL ?? null;
+  const forwardedHost = headers.get("x-forwarded-host");
+  const host = (forwardedHost ?? headers.get("host"))?.split(",")[0]?.trim();
 
   if (host) {
-    const proto =
-      headers.get("x-forwarded-proto") ??
-      (host.startsWith("localhost") || host.startsWith("127.0.0.1") ? "http" : "https");
-    return `${proto}://${host}`;
+    const forwardedProto = headers.get("x-forwarded-proto")?.split(",")[0]?.trim();
+    const isLocalHost = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+    const proto = forwardedProto ?? (isLocalHost ? "http" : "https");
+    const headerOrigin = `${proto}://${host}`;
+
+    if (isLocalHost && envOrigin && !envOrigin.includes("localhost") && !envOrigin.includes("127.0.0.1")) {
+      return envOrigin;
+    }
+
+    return headerOrigin;
   }
 
-  return process.env.NEXT_PUBLIC_SITE_URL ?? null;
+  return envOrigin;
 }
 
 export function getInitials(name: string | null): string {
