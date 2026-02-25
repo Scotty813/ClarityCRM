@@ -9,7 +9,7 @@ export const dealFormSchema = z.object({
   expected_close_date: z.string(),
   owner_id: z.string(),
   contact_id: z.string(),
-  company_id: z.string().min(1, "Company is required"),
+  company_id: z.string(),
   notes: z.string(),
   lost_reason: z.string(),
 });

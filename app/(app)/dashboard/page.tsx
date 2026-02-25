@@ -29,7 +29,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-      <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className={`grid gap-8 ${gettingStarted.dismissed ? "" : "lg:grid-cols-[1fr_320px]"}`}>
         {/* Main column */}
         <div className="flex flex-col gap-8">
           {/* Greeting */}
@@ -53,9 +53,11 @@ export default async function DashboardPage() {
         </div>
 
         {/* Sidebar */}
-        <div>
-          <OnboardingChecklist items={checklistItems} dismissed={gettingStarted.dismissed} />
-        </div>
+        {!gettingStarted.dismissed && (
+          <div>
+            <OnboardingChecklist items={checklistItems} dismissed={gettingStarted.dismissed} />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -49,23 +49,18 @@ export function DealFormFields({
   });
 
   const filteredContacts = useMemo(() => {
-    if (!selectedCompanyId) return [];
+    if (!selectedCompanyId) return contacts;
     return contacts.filter((c) => c.company_id === selectedCompanyId);
   }, [contacts, selectedCompanyId]);
 
   // Clear contact when company changes and selected contact doesn't belong
   useEffect(() => {
     const contactId = form.getValues("contact_id");
-    if (!selectedCompanyId) {
-      if (contactId) form.setValue("contact_id", "");
-      return;
-    }
-    if (contactId) {
-      const belongs = contacts.some(
-        (c) => c.id === contactId && c.company_id === selectedCompanyId
-      );
-      if (!belongs) form.setValue("contact_id", "");
-    }
+    if (!contactId || !selectedCompanyId) return;
+    const belongs = contacts.some(
+      (c) => c.id === contactId && c.company_id === selectedCompanyId
+    );
+    if (!belongs) form.setValue("contact_id", "");
   }, [selectedCompanyId, contacts, form]);
 
   return (
@@ -189,10 +184,12 @@ export function DealFormFields({
           name="company_id"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Company <span className="text-destructive">*</span></FormLabel>
+              <FormLabel>Company</FormLabel>
               <Select
-                value={field.value || undefined}
-                onValueChange={field.onChange}
+                value={field.value || "none"}
+                onValueChange={(v) =>
+                  field.onChange(v === "none" ? "" : v)
+                }
               >
                 <FormControl>
                   <SelectTrigger>
@@ -200,6 +197,7 @@ export function DealFormFields({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
+                  <SelectItem value="none">No company</SelectItem>
                   {companies.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.name}
@@ -223,17 +221,10 @@ export function DealFormFields({
                 onValueChange={(v) =>
                   field.onChange(v === "none" ? "" : v)
                 }
-                disabled={!selectedCompanyId}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        !selectedCompanyId
-                          ? "Select company first"
-                          : "Select contact"
-                      }
-                    />
+                    <SelectValue placeholder="Select contact" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
