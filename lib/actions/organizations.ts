@@ -42,10 +42,10 @@ export async function createOrganization(formData: {
 
   if (memberError) throw new Error(memberError.message);
 
-  // Set as active org and advance onboarding step
+  // Set as active org and complete onboarding
   const { error: profileError } = await supabase
     .from("profiles")
-    .update({ onboarding_step: 3, active_org_id: org.id })
+    .update({ onboarding_completed: true, onboarding_step: 4, active_org_id: org.id })
     .eq("id", user.id);
 
   if (profileError) throw new Error(profileError.message);

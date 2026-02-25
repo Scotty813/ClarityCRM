@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { getActiveOrganization } from "@/lib/supabase/active-org";
+import { revalidatePath } from "next/cache";
 import type { DealStage } from "@/lib/types/database";
 import type {
   DashboardDeal,
@@ -9,6 +10,68 @@ import type {
   DashboardTask,
   DashboardData,
 } from "@/lib/dashboard";
+
+export interface GettingStartedData {
+  dismissed: boolean;
+  hasContacts: boolean;
+  hasDeals: boolean;
+  hasTeammates: boolean;
+}
+
+export async function getGettingStartedData(): Promise<GettingStartedData> {
+  const { orgId, userId } = await getActiveOrganization();
+  const supabase = await createClient();
+
+  const [
+    { data: profile },
+    { count: contactsCount },
+    { count: dealsCount },
+    { count: membersCount },
+  ] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select("getting_started_dismissed")
+      .eq("id", userId)
+      .single(),
+    supabase
+      .from("contacts")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+    supabase
+      .from("deals")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+    supabase
+      .from("organization_users")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId),
+  ]);
+
+  return {
+    dismissed: profile?.getting_started_dismissed ?? false,
+    hasContacts: (contactsCount ?? 0) > 0,
+    hasDeals: (dealsCount ?? 0) > 0,
+    hasTeammates: (membersCount ?? 0) > 1,
+  };
+}
+
+export async function dismissGettingStarted() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ getting_started_dismissed: true })
+    .eq("id", user.id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/dashboard");
+}
 
 export async function getDashboardData(): Promise<DashboardData> {
   const { orgId, userId } = await getActiveOrganization();

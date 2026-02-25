@@ -113,7 +113,7 @@ describe("LoginForm", () => {
     await user.click(screen.getByRole("button", { name: "Sign in" }));
 
     await vi.waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith("/onboarding/welcome");
+      expect(mockPush).toHaveBeenCalledWith("/onboarding/organization");
     });
   });
 

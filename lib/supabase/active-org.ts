@@ -29,7 +29,7 @@ export async function getActiveOrganization(): Promise<{ orgId: string; userId: 
     .single();
 
   if (!membership) {
-    redirect("/onboarding/welcome");
+    redirect("/onboarding/organization");
   }
 
   // Auto-heal: set active_org_id
