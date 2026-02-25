@@ -186,10 +186,12 @@ export function CreateContactDialog({
                 name="company_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company <span className="text-destructive">*</span></FormLabel>
+                    <FormLabel>Company</FormLabel>
                     <Select
-                      value={field.value}
-                      onValueChange={field.onChange}
+                      value={field.value || "none"}
+                      onValueChange={(v) =>
+                        field.onChange(v === "none" ? "" : v)
+                      }
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -197,6 +199,7 @@ export function CreateContactDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="none">No company</SelectItem>
                         {companies.map((c) => (
                           <SelectItem key={c.id} value={c.id}>
                             {c.name}

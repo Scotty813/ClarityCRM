@@ -6,7 +6,7 @@ export const contactFormSchema = z.object({
   email: z.string().email("Invalid email address").or(z.literal("")),
   phone: z.string(),
   job_title: z.string(),
-  company_id: z.string().min(1, "Company is required"),
+  company_id: z.string(),
   notes: z.string(),
 });
 
