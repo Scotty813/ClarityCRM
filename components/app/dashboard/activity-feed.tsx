@@ -31,11 +31,11 @@ export function ActivityFeed({
   }
 
   return (
-    <Card className="h-full">
+    <Card className="h-full overflow-hidden">
       <CardHeader className="border-b">
         <CardTitle>Recent Activity</CardTitle>
       </CardHeader>
-      <CardContent className="grid gap-4 pt-6">
+      <CardContent className="grid gap-4 overflow-hidden pt-6">
         {items.map((activity) => {
           const Icon = ACTIVITY_ICONS[activity.activity_type];
           const label = ACTIVITY_TYPE_LABELS[activity.activity_type];
@@ -45,14 +45,14 @@ export function ActivityFeed({
             <Link
               key={activity.id}
               href={`/deals/${activity.deal_id}`}
-              className="group flex items-start gap-3"
+              className="group flex min-w-0 items-start gap-3"
             >
               <div className={`mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full ${colors?.bg ?? "bg-muted"}`}>
                 {Icon && <Icon className={`size-3.5 ${colors?.text ?? "text-muted-foreground"}`} />}
               </div>
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium group-hover:underline">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="shrink-0 text-sm font-medium group-hover:underline">
                     {label}
                   </span>
                   {activity.deal_name && (
