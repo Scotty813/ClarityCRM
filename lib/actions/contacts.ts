@@ -81,3 +81,26 @@ export async function deleteContact(contactId: string) {
   revalidatePath("/contacts");
   return { success: true };
 }
+
+export async function deleteContacts(ids: string[]) {
+  if (ids.length === 0) return { success: false, error: "No contacts selected" };
+
+  const result = await tryAuthorize("contact:delete");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const { error, count } = await supabase
+    .from("contacts")
+    .delete({ count: "exact" })
+    .in("id", ids)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/contacts");
+  return { success: true, deleted: count ?? ids.length };
+}

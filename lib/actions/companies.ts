@@ -121,3 +121,26 @@ export async function deleteCompany(companyId: string) {
   revalidatePath(`/companies/${companyId}`);
   return { success: true };
 }
+
+export async function deleteCompanies(ids: string[]) {
+  if (ids.length === 0) return { success: false, error: "No companies selected" };
+
+  const result = await tryAuthorize("company:delete");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const { error, count } = await supabase
+    .from("companies")
+    .delete({ count: "exact" })
+    .in("id", ids)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/companies");
+  return { success: true, deleted: count ?? ids.length };
+}

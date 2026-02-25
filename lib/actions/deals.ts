@@ -273,3 +273,26 @@ export async function deleteDeal(dealId: string) {
   revalidatePath("/deals");
   return { success: true };
 }
+
+export async function deleteDeals(ids: string[]) {
+  if (ids.length === 0) return { success: false, error: "No deals selected" };
+
+  const result = await tryAuthorize("deal:delete");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId } = result.context;
+  const supabase = await createClient();
+
+  const { error, count } = await supabase
+    .from("deals")
+    .delete({ count: "exact" })
+    .in("id", ids)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/deals");
+  return { success: true, deleted: count ?? ids.length };
+}
