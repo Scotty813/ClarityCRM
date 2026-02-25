@@ -5,6 +5,7 @@ import { adminSupabase } from "@/lib/supabase/admin";
 import { tryAuthorize } from "@/lib/supabase/authorize";
 import { can } from "@/lib/permissions";
 import { editMemberSchema } from "@/lib/validations/member";
+import type { MemberRole } from "@/lib/types/database";
 
 export async function updateMember(data: {
   organization_user_id: string;
@@ -96,4 +97,98 @@ export async function updateMember(data: {
 
   revalidatePath("/settings/team");
   return { success: true };
+}
+
+async function guardRemoveMember(orgUserId: string, orgId: string, callerRole: MemberRole) {
+  // Fetch target membership scoped to caller's org
+  const { data: target, error: targetError } = await adminSupabase
+    .from("organization_users")
+    .select("id, role")
+    .eq("id", orgUserId)
+    .eq("organization_id", orgId)
+    .single();
+
+  if (targetError || !target) {
+    return { allowed: false as const, error: "Member not found in this organization" };
+  }
+
+  // Admins cannot remove an owner
+  if (target.role === "owner" && callerRole !== "owner") {
+    return { allowed: false as const, error: "Only owners can remove another owner" };
+  }
+
+  // Prevent removing the last owner
+  if (target.role === "owner") {
+    const { count } = await adminSupabase
+      .from("organization_users")
+      .select("id", { count: "exact", head: true })
+      .eq("organization_id", orgId)
+      .eq("role", "owner");
+
+    if ((count ?? 0) <= 1) {
+      return {
+        allowed: false as const,
+        error: "Cannot remove the only owner in the organization",
+      };
+    }
+  }
+
+  return { allowed: true as const };
+}
+
+export async function removeMember(organizationUserId: string) {
+  const result = await tryAuthorize("member:remove");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId, role: callerRole } = result.context;
+
+  const guard = await guardRemoveMember(organizationUserId, orgId, callerRole);
+  if (!guard.allowed) {
+    return { success: false, error: guard.error };
+  }
+
+  const { error } = await adminSupabase
+    .from("organization_users")
+    .delete()
+    .eq("id", organizationUserId)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/settings/team");
+  return { success: true };
+}
+
+export async function removeMembers(organizationUserIds: string[]) {
+  if (organizationUserIds.length === 0) {
+    return { success: false, error: "No members selected" };
+  }
+
+  const result = await tryAuthorize("member:remove");
+  if (!result.authorized) {
+    return { success: false, error: result.error };
+  }
+
+  const { orgId, role: callerRole } = result.context;
+
+  // Validate each member can be removed before deleting any
+  for (const id of organizationUserIds) {
+    const guard = await guardRemoveMember(id, orgId, callerRole);
+    if (!guard.allowed) {
+      return { success: false, error: guard.error };
+    }
+  }
+
+  const { error, count } = await adminSupabase
+    .from("organization_users")
+    .delete({ count: "exact" })
+    .in("id", organizationUserIds)
+    .eq("organization_id", orgId);
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/settings/team");
+  return { success: true, deleted: count ?? organizationUserIds.length };
 }

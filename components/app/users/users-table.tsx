@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Search, UserPlus } from "lucide-react";
+import { useMemo, useState } from "react";
+import { MoreHorizontal, Pencil, Search, Trash2, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,8 +16,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { getInitials } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
+import { removeMember, removeMembers } from "@/lib/actions/members";
+import { useRowSelection } from "@/lib/hooks/use-row-selection";
+import { BulkActionBar } from "@/components/app/shared/bulk-action-bar";
 import { UserDetailDialog } from "./user-detail-dialog";
 import { InviteUserDialog } from "./invite-user-dialog";
 import type { MemberRole, OrgUser } from "@/lib/types/database";
@@ -33,10 +44,24 @@ interface UsersTableProps {
 
 export function UsersTable({ users, orgName }: UsersTableProps) {
   const { can } = usePermissions();
+  const canRemove = can("member:remove");
   const [search, setSearch] = useState("");
   const [selectedUser, setSelectedUser] = useState<OrgUser | null>(null);
   const [userDetailOpen, setUserDetailOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  async function handleRemove(e: React.MouseEvent, user: OrgUser) {
+    e.stopPropagation();
+    if (!confirm(`Remove "${user.full_name ?? "this member"}" from the organization? This cannot be undone.`)) return;
+
+    const result = await removeMember(user.id);
+    if (!result.success) {
+      toast.error(result.error);
+    } else {
+      toast.success("Member removed");
+    }
+  }
 
   const query = search.toLowerCase();
   const filtered = users.filter(
@@ -44,6 +69,28 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
       m.full_name?.toLowerCase().includes(query) ||
       m.email?.toLowerCase().includes(query)
   );
+
+  const filteredIds = useMemo(() => filtered.map((u) => u.id), [filtered]);
+  const selection = useRowSelection(filteredIds);
+
+  async function handleBulkRemove() {
+    if (!confirm(`Remove ${selection.count} member${selection.count === 1 ? "" : "s"} from the organization? This cannot be undone.`)) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await removeMembers(selection.selectedIds);
+      if (!result.success) {
+        toast.error(result.error);
+      } else {
+        toast.success(`${result.deleted} member${result.deleted === 1 ? "" : "s"} removed`);
+        selection.clear();
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   return (
     <>
@@ -86,9 +133,19 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canRemove && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={selection.isAllSelected ? true : selection.isSomeSelected ? "indeterminate" : false}
+                        onCheckedChange={() => selection.toggleAll()}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>User</TableHead>
                   <TableHead>Role</TableHead>
                   <TableHead>Joined</TableHead>
+                  <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -101,6 +158,16 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
                       setUserDetailOpen(true);
                     }}
                   >
+                    {canRemove && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selection.selectedIds.includes(user.id)}
+                          onCheckedChange={() => selection.toggle(user.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select ${user.full_name ?? "member"}`}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="default">
@@ -137,6 +204,44 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
                         }
                       )}
                     </TableCell>
+                    <TableCell>
+                      {(can("member:edit") || can("member:remove")) && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {can("member:edit") && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedUser(user);
+                                  setUserDetailOpen(true);
+                                }}
+                              >
+                                <Pencil className="mr-2 size-4" />
+                                Edit
+                              </DropdownMenuItem>
+                            )}
+                            {can("member:remove") && (
+                              <DropdownMenuItem
+                                className="text-destructive focus:text-destructive"
+                                onClick={(e) => handleRemove(e, user)}
+                              >
+                                <Trash2 className="mr-2 size-4" />
+                                Remove
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -152,6 +257,16 @@ export function UsersTable({ users, orgName }: UsersTableProps) {
       />
 
       <InviteUserDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+
+      {canRemove && (
+        <BulkActionBar
+          count={selection.count}
+          onDelete={handleBulkRemove}
+          onClear={selection.clear}
+          isDeleting={isDeleting}
+          entityName="member"
+        />
+      )}
     </>
   );
 }

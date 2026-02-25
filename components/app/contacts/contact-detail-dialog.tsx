@@ -33,7 +33,7 @@ import {
 } from "@/components/ui/form";
 import { getInitials } from "@/lib/utils";
 import { usePermissions } from "@/lib/hooks/use-permissions";
-import { updateContact, deleteContact } from "@/lib/actions/contacts";
+import { updateContact } from "@/lib/actions/contacts";
 import { zodResolverCompat } from "@/lib/validations/resolver";
 import {
   editContactFormSchema,
@@ -61,7 +61,6 @@ export function ContactDetailDialog({
 }: ContactDetailDialogProps) {
   const { can } = usePermissions();
   const canEdit = can("contact:edit");
-  const canDelete = can("contact:delete");
 
   const form = useForm<EditContactFormValues>({
     resolver: zodResolverCompat(editContactFormSchema),
@@ -102,25 +101,6 @@ export function ContactDetailDialog({
       }
 
       toast.success("Contact updated");
-      onOpenChange(false);
-    } catch {
-      toast.error("Something went wrong");
-    }
-  }
-
-  async function handleDelete() {
-    if (!contact) return;
-    if (!confirm(`Delete "${contact.first_name} ${contact.last_name}"? This cannot be undone.`)) return;
-
-    try {
-      const result = await deleteContact(contact.id);
-
-      if (!result.success) {
-        toast.error(result.error);
-        return;
-      }
-
-      toast.success("Contact deleted");
       onOpenChange(false);
     } catch {
       toast.error("Something went wrong");
@@ -277,32 +257,20 @@ export function ContactDetailDialog({
                     )}
                   />
 
-                  <div className="flex items-center justify-between pt-2">
-                    {canDelete && (
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={handleDelete}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                    <div className="ml-auto flex gap-2">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => onOpenChange(false)}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        type="submit"
-                        disabled={!form.formState.isDirty || form.formState.isSubmitting}
-                      >
-                        {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
-                      </Button>
-                    </div>
+                  <div className="flex items-center justify-end gap-2 pt-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => onOpenChange(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={!form.formState.isDirty || form.formState.isSubmitting}
+                    >
+                      {form.formState.isSubmitting ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </form>
               </Form>

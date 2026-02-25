@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { MoreHorizontal, Pencil, Plus, Search, Trash2, User } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Table,
@@ -21,7 +22,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { usePermissions } from "@/lib/hooks/use-permissions";
-import { deleteContact } from "@/lib/actions/contacts";
+import { deleteContact, deleteContacts } from "@/lib/actions/contacts";
+import { useRowSelection } from "@/lib/hooks/use-row-selection";
+import { BulkActionBar } from "@/components/app/shared/bulk-action-bar";
 import { CreateContactDialog } from "./create-contact-dialog";
 import { ContactDetailDialog } from "./contact-detail-dialog";
 import type { ContactWithCompany } from "@/lib/types/database";
@@ -38,10 +41,12 @@ interface ContactsTableProps {
 
 export function ContactsTable({ contacts, companies }: ContactsTableProps) {
   const { can } = usePermissions();
+  const canDelete = can("contact:delete");
   const [search, setSearch] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<ContactWithCompany | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const query = search.toLowerCase();
   const filtered = contacts.filter(
@@ -52,6 +57,9 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
       c.email?.toLowerCase().includes(query) ||
       c.company_name?.toLowerCase().includes(query)
   );
+
+  const filteredIds = useMemo(() => filtered.map((c) => c.id), [filtered]);
+  const selection = useRowSelection(filteredIds);
 
   function getInitials(firstName: string, lastName: string) {
     return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
@@ -67,6 +75,25 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
     } else {
       toast.success("Contact deleted");
       if (selectedContact?.id === contact.id) setSelectedContact(null);
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (!confirm(`Delete ${selection.count} contact${selection.count === 1 ? "" : "s"}? This cannot be undone.`)) return;
+
+    setIsDeleting(true);
+    try {
+      const result = await deleteContacts(selection.selectedIds);
+      if (!result.success) {
+        toast.error(result.error);
+      } else {
+        toast.success(`${result.deleted} contact${result.deleted === 1 ? "" : "s"} deleted`);
+        selection.clear();
+      }
+    } catch {
+      toast.error("Something went wrong");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -112,6 +139,15 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  {canDelete && (
+                    <TableHead className="w-10">
+                      <Checkbox
+                        checked={selection.isAllSelected ? true : selection.isSomeSelected ? "indeterminate" : false}
+                        onCheckedChange={() => selection.toggleAll()}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                  )}
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Company</TableHead>
@@ -130,6 +166,16 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
                       setDetailOpen(true);
                     }}
                   >
+                    {canDelete && (
+                      <TableCell>
+                        <Checkbox
+                          checked={selection.selectedIds.includes(contact.id)}
+                          onCheckedChange={() => selection.toggle(contact.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Select ${contact.first_name} ${contact.last_name}`}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar size="default">
@@ -214,6 +260,16 @@ export function ContactsTable({ contacts, companies }: ContactsTableProps) {
         contact={selectedContact}
         companies={companies}
       />
+
+      {canDelete && (
+        <BulkActionBar
+          count={selection.count}
+          onDelete={handleBulkDelete}
+          onClear={selection.clear}
+          isDeleting={isDeleting}
+          entityName="contact"
+        />
+      )}
     </>
   );
 }
